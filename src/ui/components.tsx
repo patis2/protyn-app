@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Animated,
   Platform,
   Pressable,
   ScrollView,
@@ -14,7 +15,8 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Icon, type IconName } from './icons';
+import { Aura, Icon, type IconName } from './icons';
+import { FadeIn, usePop, usePressScale, useTween } from './motion';
 import { useColors } from './theme';
 import { font, maxContentWidth, radius } from './tokens';
 
@@ -80,13 +82,19 @@ export function Screen({ children, footer, scroll = true }: Children & { footer?
   const c = useColors();
   const insets = useSafeAreaInsets();
   const padTop = React.useContext(TopInset);
+  // Each block eases in a beat after the one above it, capped so long pages don't wait.
+  let n = 0;
+  const staged = React.Children.map(children, (child) =>
+    child == null || child === false ? child : <FadeIn delay={Math.min(n++ * 55, 330)}>{child}</FadeIn>,
+  );
   const inner = (
     <View style={{ width: '100%', maxWidth: maxContentWidth, alignSelf: 'center', gap: 16, paddingHorizontal: 16, paddingTop: 18 + (padTop ? insets.top : 0), paddingBottom: 28 }}>
-      {children}
+      {staged}
     </View>
   );
   return (
-    <View style={{ flex: 1, backgroundColor: c.bg }}>
+    <View style={{ flex: 1, backgroundColor: c.bg, overflow: 'hidden' }}>
+      <Aura />
       {scroll ? (
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
           {inner}
@@ -114,8 +122,26 @@ export function Card({ children, tint, style, label }: Children & { tint?: boole
   return (
     <View
       accessibilityLabel={label}
-      style={[{ backgroundColor: tint ? c.sageSoft : c.surface, borderWidth: 1, borderColor: tint ? 'transparent' : c.line, borderRadius: radius.lg, padding: 16, gap: 10 }, style]}
+      style={[{ backgroundColor: tint ? c.sageSoft : c.surface, borderWidth: 1, borderColor: tint ? 'transparent' : c.line, borderRadius: radius.lg, padding: 16, gap: 10 }, !tint && shadow(c.ink), style]}
     >
+      {children}
+    </View>
+  );
+}
+
+/** A soft lift under cards, kept faint so the page still feels flat and calm. */
+export const shadow = (color: string): ViewStyle =>
+  Platform.OS === 'web'
+    ? ({ boxShadow: `0 1px 2px ${color}0F, 0 6px 18px ${color}0D` } as ViewStyle)
+    : { shadowColor: color, shadowOpacity: 0.07, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 };
+
+/** The deep sage banner that opens the Today screen, with soft shapes behind it. */
+export function Hero({ children }: Children) {
+  const c = useColors();
+  return (
+    <View style={[{ backgroundColor: c.hero, borderRadius: radius.xl, padding: 18, gap: 12, overflow: 'hidden' }, shadow(c.hero)]}>
+      <View pointerEvents="none" style={{ position: 'absolute', width: 220, height: 220, borderRadius: 110, right: -70, top: -90, backgroundColor: c.sage, opacity: 0.35 }} />
+      <View pointerEvents="none" style={{ position: 'absolute', width: 140, height: 140, borderRadius: 70, left: -50, bottom: -70, backgroundColor: c.coral, opacity: 0.22 }} />
       {children}
     </View>
   );
@@ -136,7 +162,7 @@ export function ListItem({ children, first }: Children & { first?: boolean }) {
 type ButtonProps = {
   label: string;
   onPress?: () => void;
-  kind?: 'primary' | 'ghost' | 'soft' | 'danger';
+  kind?: 'primary' | 'ghost' | 'soft' | 'danger' | 'hero';
   small?: boolean;
   block?: boolean;
   disabled?: boolean;
@@ -148,40 +174,45 @@ type ButtonProps = {
 
 export function Button({ label, onPress, kind = 'primary', small, block, disabled, loading, flex, hint, color }: ButtonProps) {
   const c = useColors();
-  const bg = { primary: c.sage, ghost: 'transparent', soft: c.sageSoft, danger: c.coralInk }[kind];
-  const fg = color ?? { primary: c.onSage, ghost: c.ink, soft: c.sageDeep, danger: c.surface }[kind];
+  const bg = { primary: c.sage, ghost: 'transparent', soft: c.sageSoft, danger: c.coralInk, hero: c.onHero }[kind];
+  const fg = color ?? { primary: c.onSage, ghost: c.ink, soft: c.sageDeep, danger: c.surface, hero: c.hero }[kind];
+  const press = usePressScale();
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityHint={hint}
-      accessibilityState={{ disabled: !!disabled || !!loading, busy: !!loading }}
-      disabled={disabled || loading}
-      onPress={onPress}
-      style={(s: PressState) => [
-        {
-          backgroundColor: bg,
-          borderRadius: radius.pill,
-          paddingVertical: small ? 8 : 12,
-          paddingHorizontal: small ? 14 : 18,
-          minHeight: small ? 36 : 46,
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'row',
-          gap: 6,
-          borderWidth: kind === 'ghost' ? 1 : 0,
-          borderColor: c.line,
-          opacity: disabled ? 0.45 : s.pressed ? 0.85 : 1,
-        },
-        block && { alignSelf: 'stretch' },
-        !block && !flex && { alignSelf: 'flex-start' },
-        flex && { flex: 1 },
-        focusRing(s, c.sage),
-      ]}
-    >
-      {loading ? <ActivityIndicator color={fg} size="small" /> : null}
-      <Text style={{ color: fg, fontFamily: font.bodySemi, fontSize: small ? 13 : 15 }}>{label}</Text>
-    </Pressable>
+    <Animated.View style={[block && { alignSelf: 'stretch' }, !block && !flex && { alignSelf: 'flex-start' }, flex && { flex: 1 }, { transform: [{ scale: press.scale }] }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={hint}
+        accessibilityState={{ disabled: !!disabled || !!loading, busy: !!loading }}
+        disabled={disabled || loading}
+        onPress={onPress}
+        onPressIn={press.onPressIn}
+        onPressOut={press.onPressOut}
+        style={(s: PressState) => [
+          {
+            backgroundColor: bg,
+            borderRadius: radius.pill,
+            paddingVertical: small ? 8 : 12,
+            paddingHorizontal: small ? 14 : 18,
+            minHeight: small ? 36 : 46,
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            gap: 6,
+            borderWidth: kind === 'ghost' ? 1 : 0,
+            borderColor: c.line,
+            opacity: disabled ? 0.45 : s.pressed ? 0.9 : 1,
+          },
+          kind === 'primary' && !disabled && Platform.OS === 'web' ? ({ boxShadow: `0 4px 14px ${c.sage}40` } as ViewStyle) : null,
+          s.hovered && !disabled && kind !== 'primary' ? { backgroundColor: kind === 'ghost' ? 'rgba(127,127,127,0.12)' : kind === 'hero' ? c.heroMuted : c.band } : null,
+          s.hovered && !disabled && kind === 'primary' ? { backgroundColor: c.sageDeep } : null,
+          focusRing(s, c.sage),
+        ]}
+      >
+        {loading ? <ActivityIndicator color={fg} size="small" /> : null}
+        <Text style={{ color: fg, fontFamily: font.bodySemi, fontSize: small ? 13 : 15 }}>{label}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -215,7 +246,9 @@ export function IconButton({ icon, label, onPress, size = 40, tint }: { icon: Ic
 /** Round tick used to mark meals eaten, habits kept and shopping items bought. */
 export function Tick({ on, onPress, label }: { on: boolean; onPress: () => void; label: string }) {
   const c = useColors();
+  const pop = usePop(on);
   return (
+    <Animated.View style={{ transform: [{ scale: pop }] }}>
     <Pressable
       accessibilityRole="checkbox"
       accessibilityLabel={label}
@@ -229,6 +262,7 @@ export function Tick({ on, onPress, label }: { on: boolean; onPress: () => void;
     >
       {on ? <Icon name="check" size={16} color={c.onSage} /> : null}
     </Pressable>
+    </Animated.View>
   );
 }
 
@@ -238,22 +272,26 @@ type ChoiceProps = { label: string; sub?: string; on: boolean; onPress: () => vo
 
 export function Choice({ label, sub, on, onPress, full, half, multi }: ChoiceProps) {
   const c = useColors();
+  const press = usePressScale(0.98);
   return (
+    <Animated.View style={[full && { alignSelf: 'stretch' }, half && { flexGrow: 1, flexBasis: '45%' }, { transform: [{ scale: press.scale }] }]}>
     <Pressable
+      onPressIn={press.onPressIn}
+      onPressOut={press.onPressOut}
       accessibilityRole={multi ? 'checkbox' : 'radio'}
       accessibilityState={multi ? { checked: on } : { selected: on, checked: on }}
       accessibilityLabel={sub ? `${label}. ${sub}` : label}
       onPress={onPress}
       style={(s: PressState) => [
         { borderWidth: 1.5, borderColor: on ? c.sage : c.line, backgroundColor: on ? c.sageSoft : c.surface, borderRadius: radius.md, paddingVertical: 10, paddingHorizontal: 13, gap: 2, minHeight: 44, justifyContent: 'center' },
-        full && { alignSelf: 'stretch' },
-        half && { flexGrow: 1, flexBasis: '45%' },
+        s.hovered && !on ? { borderColor: c.band } : null,
         focusRing(s, c.sage),
       ]}
     >
       <Text style={{ fontFamily: on ? font.bodySemi : font.bodyMedium, fontSize: 15, color: on ? c.sageDeep : c.ink }}>{label}</Text>
       {sub ? <Text style={{ fontFamily: font.body, fontSize: 13, color: c.muted }}>{sub}</Text> : null}
     </Pressable>
+    </Animated.View>
   );
 }
 
@@ -356,10 +394,10 @@ export function Field({ label, optional, error, hint, multiline, style, ...rest 
 
 // ---------- small display pieces ----------
 
-export function Chip({ label, tone = 'sage' }: { label: string; tone?: 'sage' | 'coral' | 'amber' | 'line' }) {
+export function Chip({ label, tone = 'sage' }: { label: string; tone?: 'sage' | 'coral' | 'amber' | 'line' | 'hero' }) {
   const c = useColors();
-  const bg = { sage: c.sageSoft, coral: c.coralSoft, amber: c.amberSoft, line: 'transparent' }[tone];
-  const fg = { sage: c.sageDeep, coral: c.coralInk, amber: c.amberInk, line: c.muted }[tone];
+  const bg = { sage: c.sageSoft, coral: c.coralSoft, amber: c.amberSoft, line: 'transparent', hero: 'rgba(255,255,255,0.12)' }[tone];
+  const fg = { sage: c.sageDeep, coral: c.coralInk, amber: c.amberInk, line: c.muted, hero: c.onHero }[tone];
   return (
     <View style={{ backgroundColor: bg, borderRadius: radius.pill, paddingVertical: 4, paddingHorizontal: 10, borderWidth: tone === 'line' ? 1 : 0, borderColor: c.line, alignSelf: 'flex-start' }}>
       <Text style={{ color: fg, fontFamily: font.bodyMedium, fontSize: 13 }}>{label}</Text>
@@ -384,9 +422,10 @@ export function Note({ children, tone = 'note' }: Children & { tone?: 'note' | '
 
 export function ProgressBar({ pct, label }: { pct: number; label: string }) {
   const c = useColors();
+  const w = useTween(Math.min(100, Math.max(0, pct)), 500);
   return (
     <View accessibilityRole="progressbar" accessibilityLabel={label} accessibilityValue={{ min: 0, max: 100, now: Math.round(pct) }} style={{ height: 6, backgroundColor: c.sunk, borderRadius: 3, overflow: 'hidden' }}>
-      <View style={{ width: `${Math.min(100, Math.max(0, pct))}%`, height: '100%', backgroundColor: c.sage, borderRadius: 3 }} />
+      <Animated.View style={{ width: w.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }), height: '100%', backgroundColor: c.sage, borderRadius: 3 }} />
     </View>
   );
 }
@@ -395,6 +434,7 @@ export function ProgressBar({ pct, label }: { pct: number; label: string }) {
 export function Meter({ value, lo, hi }: { value: number; lo: number; hi: number }) {
   const c = useColors();
   const max = Math.max(hi * 1.25, value + 5);
+  const fill = useTween(Math.min((value / max) * 100, 100), 900);
   return (
     <View
       accessibilityRole="image"
@@ -402,7 +442,7 @@ export function Meter({ value, lo, hi }: { value: number; lo: number; hi: number
       style={{ height: 14, borderRadius: 7, backgroundColor: c.sunk, overflow: 'hidden' }}
     >
       <View style={{ position: 'absolute', top: 0, bottom: 0, left: `${(lo / max) * 100}%`, width: `${((hi - lo) / max) * 100}%`, backgroundColor: c.band, borderLeftWidth: 2, borderRightWidth: 2, borderColor: c.sage }} />
-      <View style={{ position: 'absolute', left: 0, top: 3, bottom: 3, width: `${Math.min((value / max) * 100, 100)}%`, borderRadius: 6, backgroundColor: c.coral }} />
+      <Animated.View style={{ position: 'absolute', left: 0, top: 3, bottom: 3, width: fill.interpolate({ inputRange: [0, 100], outputRange: ['0%', '100%'] }), borderRadius: 6, backgroundColor: c.coral }} />
     </View>
   );
 }

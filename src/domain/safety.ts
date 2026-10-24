@@ -16,6 +16,9 @@ export const PROFESSIONAL_NOTE =
 export const ALLERGEN_NOTE =
   'We filter dishes by their main ingredients. Packaged foods, spice mixes and hing can contain hidden allergens such as wheat, so always check labels.';
 
+export const MEAT_NOTE =
+  'Cook chicken, meat and fish until there is no pink inside and the juices run clear. If you are pregnant, ask your doctor which fish are right for you.';
+
 /** Health answers switch on gentler defaults. They never block anyone from using the app. */
 export const isGentle = (p: Profile) => p.health.length > 0;
 

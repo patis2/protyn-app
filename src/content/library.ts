@@ -98,9 +98,18 @@ export const HABITS: HabitDef[] = [
   { id: 'fried', name: 'Fried snacks only once today', kind: 'reduce', type: 'bool' },
   { id: 'sitting', name: 'Stood up every hour at work', kind: 'reduce', type: 'bool' },
   { id: 'latedinner', name: 'Dinner before 9 pm', kind: 'reduce', type: 'bool' },
+  { id: 'veg', name: 'Vegetables at two meals', kind: 'build', type: 'bool' },
+  { id: 'stretch', name: '5 minutes of stretching', kind: 'build', type: 'bool' },
+  { id: 'fruit', name: 'One piece of fruit', kind: 'build', type: 'bool' },
+  { id: 'breathe', name: '5 slow breaths when stressed', kind: 'build', type: 'bool' },
+  { id: 'stairs', name: 'Take the stairs', kind: 'build', type: 'bool' },
+  { id: 'sweets', name: 'Sweets only once today', kind: 'reduce', type: 'bool' },
+  { id: 'chai', name: 'Two cups of tea or coffee at most', kind: 'reduce', type: 'bool' },
+  { id: 'snacking', name: 'No late-night snacking', kind: 'reduce', type: 'bool' },
+  { id: 'phone', name: 'No phone during meals', kind: 'reduce', type: 'bool' },
+  { id: 'tobacco', name: 'No smoking or tobacco today', kind: 'reduce', type: 'bool' },
 ];
 export const HABIT_BY_ID: Record<string, HabitDef> = Object.fromEntries(HABITS.map((h) => [h.id, h]));
-export const MAX_HABITS = 5;
 
 export const GOALS: { id: GoalId; name: string; detail: string }[] = [
   { id: 'fitness', name: 'Improve general fitness', detail: 'Strength, walking and steady meals' },
@@ -127,6 +136,8 @@ export const ALLERGENS: [import('../domain/types').Allergen, string][] = [
   ['soy', 'Soy'],
   ['egg', 'Egg'],
   ['sesame', 'Sesame'],
+  ['fish', 'Fish'],
+  ['shellfish', 'Prawns and shellfish'],
 ];
 
 export const STAPLES: [import('../domain/types').Staple, string][] = [
@@ -136,6 +147,10 @@ export const STAPLES: [import('../domain/types').Staple, string][] = [
   ['sprouts', 'Sprouts'],
   ['curd', 'Curd'],
   ['eggs', 'Eggs'],
+  ['chicken', 'Chicken'],
+  ['fish', 'Fresh fish'],
+  ['mutton', 'Mutton'],
 ];
+export const MEAT_STAPLES: import('../domain/types').Staple[] = ['chicken', 'fish', 'mutton'];
 
 export const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

@@ -11,7 +11,7 @@ import type { Allergen, Diet, Profile } from '../src/domain/types';
 import { SLOTS } from '../src/domain/types';
 import { stepError } from '../src/domain/validation';
 import { buildSession, progression, sessionForDate } from '../src/domain/workouts';
-import { SESSIONS } from '../src/content/library';
+import { HABITS, SESSIONS } from '../src/content/library';
 
 const profile = (over: Partial<Profile> = {}): Profile => ({
   ...blankProfile(),
@@ -30,8 +30,8 @@ const profile = (over: Partial<Profile> = {}): Profile => ({
 });
 
 const days = Array.from({ length: 28 }, (_, i) => addDays(new Date(2026, 9, 1), i));
-const allergens: Allergen[] = ['dairy', 'gluten', 'peanut', 'soy', 'egg'];
-const diets: Diet[] = ['veg', 'egg', 'jain', 'vegan'];
+const allergens: Allergen[] = ['dairy', 'gluten', 'peanut', 'soy', 'egg', 'fish', 'shellfish'];
+const diets: Diet[] = ['veg', 'egg', 'nonveg', 'jain', 'vegan'];
 
 describe('meal plans never break hard filters', () => {
   for (const diet of diets)
@@ -77,6 +77,32 @@ describe('meal plans never break hard filters', () => {
     for (const slot of SLOTS) for (const d of candidates(p, slot)) expect(d.diet).toBe('veg');
   });
 
+  it('only non-vegetarians see meat, chicken or fish', () => {
+    for (const diet of ['veg', 'egg', 'jain', 'vegan'] as Diet[])
+      for (const cuisine of ['N', 'S', 'E', 'W'] as const)
+        for (const slot of SLOTS) for (const d of candidates(profile({ diet, cuisine }), slot)) expect(d.diet).not.toBe('nonveg');
+    const nonveg = profile({ diet: 'nonveg', cuisine: 'E' });
+    expect(SLOTS.flatMap((slot) => candidates(nonveg, slot)).some((d) => d.diet === 'nonveg')).toBe(true);
+  });
+
+  it('meals stay in the chosen region', () => {
+    for (const diet of diets)
+      for (const cuisine of ['N', 'S', 'E', 'W'] as const) {
+        const p = profile({ diet, cuisine, goal: 'strength', weightKg: '75' });
+        for (const d of days)
+          for (const slot of SLOTS) {
+            const dish = provider.mealsForDay(p, {}, d)[slot];
+            // Other regions only fill in when the filters leave fewer than two home options.
+            if (dish && !dish.cuisines.includes(cuisine)) expect(candidates(p, slot).filter((x) => x.cuisines.includes(cuisine)).length).toBeLessThan(2);
+          }
+      }
+  });
+
+  it('an East Indian plan has no South-only dishes', () => {
+    const p = profile({ cuisine: 'E', diet: 'veg' });
+    for (const d of days) for (const slot of SLOTS) expect(provider.mealsForDay(p, {}, d)[slot]?.cuisines).toContain('E');
+  });
+
   it('every slot still has options for the strictest common profile', () => {
     const p = profile({ diet: 'vegan', allergies: ['gluten', 'soy', 'peanut'] });
     for (const slot of SLOTS) expect(candidates(p, slot).length).toBeGreaterThan(0);
@@ -86,6 +112,11 @@ describe('meal plans never break hard filters', () => {
     const p = profile({ diet: 'egg', goal: 'strength', weightKg: '70', allergies: ['peanut'] });
     const lunches = new Set(days.slice(0, 7).map((d) => provider.mealsForDay(p, {}, d).l?.id));
     expect(lunches.size).toBeGreaterThanOrEqual(3);
+  });
+
+  it('there is no limit on how many habits you track', () => {
+    expect(HABITS.filter((h) => h.kind === 'build').length).toBeGreaterThan(5);
+    expect(HABITS.filter((h) => h.kind === 'reduce').length).toBeGreaterThan(5);
   });
 
   it('every dish has steps, ingredients and a portion', () => {

@@ -1,5 +1,8 @@
 import React from 'react';
-import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg';
+import { View } from 'react-native';
+import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { useTween } from './motion';
+import { useColors } from './theme';
 
 export type IconName = 'home' | 'food' | 'move' | 'habits' | 'progress' | 'user' | 'check' | 'back' | 'close' | 'list' | 'plus' | 'minus' | 'heart' | 'shield';
 
@@ -62,5 +65,60 @@ export function FigureArt({ size = 120, color }: { size?: number; color: string 
       <Circle cx={60} cy={22} r={10} stroke={color} strokeWidth={4} />
       <Path d="M60 34v34M60 44l-24 12M60 44l24 12M60 68l-16 30M60 68l16 30M26 54h-8M102 54h-8M18 48v12M102 48v12" stroke={color} strokeWidth={4} strokeLinecap="round" strokeLinejoin="round" />
     </Svg>
+  );
+}
+
+/** Soft background shapes at the top of every screen. Purely decorative. */
+export function Aura() {
+  const c = useColors();
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 360 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width="100%" height="100%">
+        <Defs>
+          <RadialGradient id="auraSage" cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor={c.sage} stopOpacity={0.22} />
+            <Stop offset="1" stopColor={c.sage} stopOpacity={0} />
+          </RadialGradient>
+          <RadialGradient id="auraCoral" cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor={c.coral} stopOpacity={0.18} />
+            <Stop offset="1" stopColor={c.coral} stopOpacity={0} />
+          </RadialGradient>
+        </Defs>
+        <Circle cx="88%" cy={40} r={180} fill="url(#auraSage)" />
+        <Circle cx="6%" cy={150} r={150} fill="url(#auraCoral)" />
+      </Svg>
+    </View>
+  );
+}
+
+/** A progress ring: the coral arc fills toward the range, sage once you're in it. */
+export function Ring({ pct, size = 96, stroke = 10, track, color, children }: { pct: number; size?: number; stroke?: number; track: string; color: string; children?: React.ReactNode }) {
+  const r = (size - stroke) / 2;
+  const len = 2 * Math.PI * r;
+  const target = Math.max(0, Math.min(1, pct));
+  const v = useTween(target, 900);
+  const [p, setP] = React.useState(target);
+  React.useEffect(() => {
+    const id = v.addListener(({ value }) => setP(value));
+    return () => v.removeListener(id);
+  }, [v]);
+  return (
+    <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+      <Svg width={size} height={size} style={{ position: 'absolute' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
+        <Circle
+          cx={size / 2}
+          cy={size / 2}
+          r={r}
+          stroke={color}
+          strokeWidth={stroke}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={`${len * p} ${len}`}
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </Svg>
+      {children}
+    </View>
   );
 }

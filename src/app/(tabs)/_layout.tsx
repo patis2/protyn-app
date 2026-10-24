@@ -1,11 +1,12 @@
 import { Redirect, router, Slot, usePathname } from 'expo-router';
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Animated, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useStore } from '../../data/store';
 import { focusRing, TopInset, Txt } from '../../ui/components';
 import { Icon, Logo, type IconName } from '../../ui/icons';
 import { useColors, useWide } from '../../ui/theme';
+import { usePop } from '../../ui/motion';
 import { font } from '../../ui/tokens';
 
 // Five destinations: a bottom tab bar on phones and narrow windows, a sidebar
@@ -91,14 +92,23 @@ export default function TabsLayout() {
               onPress={() => go(t.href)}
               style={(s: PressState) => [{ flex: 1, alignItems: 'center', gap: 2, paddingVertical: 4, borderRadius: 12 }, ring(s, c.sage)]}
             >
-              <View style={{ width: 48, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.sageSoft : 'transparent' }}>
-                <Icon name={t.icon} color={on ? c.sageDeep : c.muted} />
-              </View>
+              <TabPill on={on} icon={t.icon} />
               <Text style={{ fontSize: 11, fontFamily: on ? font.bodySemi : font.body, color: on ? c.sageDeep : c.muted }}>{t.label}</Text>
             </Pressable>
           );
         })}
       </View>
     </View>
+  );
+}
+
+/** The tab icon gets a soft pill, which pops in when the tab is chosen. */
+function TabPill({ on, icon }: { on: boolean; icon: IconName }) {
+  const c = useColors();
+  const pop = usePop(on);
+  return (
+    <Animated.View style={{ width: 52, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? c.sageSoft : 'transparent', transform: [{ scale: pop }] }}>
+      <Icon name={icon} color={on ? c.sageDeep : c.muted} />
+    </Animated.View>
   );
 }

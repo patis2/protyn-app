@@ -16,6 +16,8 @@ export function dietOK(diet: Diet | '', dish: Pick<Dish, 'diet' | 'jain' | 'alle
     case 'vegan':
       return dish.diet === 'veg' && !dish.allergens.includes('dairy');
     case 'egg':
+      return dish.diet !== 'nonveg';
+    case 'nonveg':
       return true;
   }
   return false;
@@ -36,16 +38,25 @@ export function isAllowed(p: Profile, dish: Dish): boolean {
 
 const isAvailable = (p: Profile, d: Dish) => !d.staples.some((s) => p.unavailable.includes(s));
 
-/** Allowed dishes for a slot, best fit first: easy to get, then home cuisine, then the rest. */
+/** Dishes from the user's own region, plus pan-Indian dishes that every region cooks. */
+export const isHomeRegion = (p: Profile, d: Dish) => d.cuisines.includes(p.cuisine || 'N');
+
+/** Fewer home-region options than this for a slot, and other regions fill in. */
+const MIN_HOME = 2;
+
+/**
+ * Allowed dishes for a slot, best fit first. Only the user's region is planned
+ * unless the hard filters leave fewer than two options, so an East Indian plan
+ * doesn't drift into South Indian food. Within that, easy-to-get dishes lead.
+ */
 export function candidates(p: Profile, slot: Slot): Dish[] {
   const all = DISHES.filter((d) => d.slot === slot && isAllowed(p, d));
-  const cu = p.cuisine || 'N';
-  const score = (d: Dish) => (isAvailable(p, d) ? 2 : 0) + (d.cuisines.includes(cu) ? 1 : 0);
-  const ranked = [...all].sort((a, b) => score(b) - score(a));
-  const preferred = ranked.filter((d) => score(d) === 3);
-  // Rotate through the best matches, widening the pool when it's too small for variety.
-  if (preferred.length >= 3) return preferred.concat(ranked.filter((d) => score(d) !== 3));
-  return ranked;
+  // Easy to get first, then true regional dishes ahead of pan-Indian ones.
+  const score = (d: Dish) => (isAvailable(p, d) ? 2 : 0) + (d.cuisines.length < 4 ? 1 : 0);
+  const byAvailability = (list: Dish[]) => [...list].sort((a, b) => score(b) - score(a));
+  const home = all.filter((d) => isHomeRegion(p, d));
+  if (home.length >= MIN_HOME) return byAvailability(home);
+  return byAvailability(home).concat(byAvailability(all.filter((d) => !isHomeRegion(p, d))));
 }
 
 export function proteinRange(p: Profile): [number, number] {
@@ -64,8 +75,8 @@ export function basePlan(p: Profile, date: Date): DayMeals {
   const plan = {} as DayMeals;
   SLOTS.forEach((slot, j) => {
     const c = candidates(p, slot);
-    const pool = c.slice(0, Math.max(3, Math.min(c.length, 6)));
-    plan[slot] = pool.length ? pool[(n * 3 + j * 2) % pool.length] : null;
+    const pool = c.slice(0, Math.min(c.length, 6));
+    plan[slot] = pool.length ? pool[(n + j * 2) % pool.length] : null;
   });
   const [lo] = proteinRange(p);
   const sum = () => SLOTS.reduce((a, s) => a + (plan[s]?.protein ?? 0), 0);
@@ -114,13 +125,14 @@ export function whyThis(p: Profile, dish: Dish): string {
   return parts.join(', ');
 }
 
-export const dietLabel = (d: Diet | '') => ({ veg: 'Vegetarian', egg: 'Eggetarian', jain: 'Jain', vegan: 'Vegan' })[d || 'veg'];
+export const dietLabel = (d: Diet | '') => ({ veg: 'Vegetarian', egg: 'Eggetarian', nonveg: 'Non-vegetarian', jain: 'Jain', vegan: 'Vegan' })[d || 'veg'];
 export const cuisineLabel = (c: Profile['cuisine']) => ({ N: 'North Indian', S: 'South Indian', E: 'East Indian', W: 'West Indian' })[c || 'N'];
 export const allergenLabel = (a: Allergen) =>
-  ({ dairy: 'Dairy', gluten: 'Gluten', peanut: 'Peanuts', treenut: 'Tree nuts', soy: 'Soy', egg: 'Egg', sesame: 'Sesame' })[a];
+  ({ dairy: 'Dairy', gluten: 'Gluten', peanut: 'Peanuts', treenut: 'Tree nuts', soy: 'Soy', egg: 'Egg', sesame: 'Sesame', fish: 'Fish', shellfish: 'Prawns and shellfish' })[a];
 
 export function proteinTip(p: Profile): string {
   const curd = !p.allergies.includes('dairy') && p.diet !== 'vegan';
+  if (p.diet === 'nonveg') return 'A piece of grilled chicken or fish, or two boiled eggs, would close most of it.';
   if (p.diet === 'egg' && !p.allergies.includes('egg')) return 'Two boiled eggs or a katori of dal would close most of it.';
   return curd ? 'A katori of curd or a handful of roasted chana would help.' : 'A handful of roasted chana or a katori of sprouts would help.';
 }

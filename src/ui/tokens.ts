@@ -19,6 +19,9 @@ export type Palette = {
   amberSoft: string;
   amberInk: string;
   scrim: string;
+  hero: string;
+  onHero: string;
+  heroMuted: string;
 };
 
 export const light: Palette = {
@@ -39,6 +42,9 @@ export const light: Palette = {
   amberSoft: '#F6E7C8',
   amberInk: '#7A5310',
   scrim: 'rgba(31,42,46,0.42)',
+  hero: '#2F5240',
+  onHero: '#F8F1E9',
+  heroMuted: '#C9D8CD',
 };
 
 export const dark: Palette = {
@@ -59,6 +65,9 @@ export const dark: Palette = {
   amberSoft: '#3A3020',
   amberInk: '#EBCB8B',
   scrim: 'rgba(0,0,0,0.6)',
+  hero: '#24392D',
+  onHero: '#F1EEE7',
+  heroMuted: '#A9BDB0',
 };
 
 export const font = {

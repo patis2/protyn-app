@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import { ALLERGENS, DAYS, GOALS, HABITS, HEALTH_FLAGS, MAX_HABITS, STAPLES } from '../content/library';
+import { ALLERGENS, DAYS, GOALS, HABITS, HEALTH_FLAGS, MEAT_STAPLES, STAPLES } from '../content/library';
 import { useStore } from '../data/store';
 import { keyOf } from '../domain/dates';
 import { cuisineLabel, proteinRange } from '../domain/nutrition';
@@ -18,7 +18,7 @@ const STEPS: { key: StepKey; title: string; why: string; optional?: boolean }[] 
   { key: 'activity', title: 'Activity', why: 'We start easier than you might expect, then adjust after your first few check-ins.' },
   { key: 'food', title: 'Food', why: 'Diet, allergies and foods to avoid are hard filters. A dish that breaks them is never shown, even as a swap.' },
   { key: 'workouts', title: 'Workouts', why: 'We only plan exercises you can do with what you have, on the days that suit you.' },
-  { key: 'habits', title: 'Habits', why: 'Three to five small habits are easier to keep than ten. Your current sleep and water help us pick sensible starting points.', optional: true },
+  { key: 'habits', title: 'Habits', why: 'Pick as many habits as you want to work on. Your current sleep and water help us pick sensible starting points.', optional: true },
   { key: 'health', title: 'Health check', why: 'These answers turn on gentler defaults and a prompt to see a professional. They never block you. On phones they are stored in the device’s secure storage, and they are never sent to our servers or used for ads.', optional: true },
   { key: 'preview', title: 'Your plan', why: '' },
 ];
@@ -127,6 +127,7 @@ export default function Onboarding() {
             <Choices>
               <Choice half label="Vegetarian" sub="With dairy" on={p.diet === 'veg'} onPress={() => set('diet', 'veg')} />
               <Choice half label="Eggetarian" sub="Vegetarian plus eggs" on={p.diet === 'egg'} onPress={() => set('diet', 'egg')} />
+              <Choice half label="Non-vegetarian" sub="Chicken, fish, mutton and eggs" on={p.diet === 'nonveg'} onPress={() => set('diet', 'nonveg')} />
               <Choice half label="Jain" sub="No root vegetables" on={p.diet === 'jain'} onPress={() => set('diet', 'jain')} />
               <Choice half label="Vegan" sub="No dairy or eggs" on={p.diet === 'vegan'} onPress={() => set('diet', 'vegan')} />
             </Choices>
@@ -148,7 +149,7 @@ export default function Onboarding() {
             <Txt variant="card">Hard to get where you live?</Txt>
             <Txt variant="small">We’ll plan fewer meals around these.</Txt>
             <Choices>
-              {STAPLES.map(([v, l]) => (
+              {STAPLES.filter(([v]) => p.diet === 'nonveg' || !MEAT_STAPLES.includes(v)).map(([v, l]) => (
                 <Choice multi key={v} label={l} on={p.unavailable.includes(v)} onPress={() => toggle('unavailable', v)} />
               ))}
             </Choices>
@@ -195,7 +196,7 @@ export default function Onboarding() {
                 <Choice multi full key={h.id} label={h.name} on={p.habits.includes(h.id)} onPress={() => toggle('habits', h.id)} />
               ))}
             </Choices>
-            <Txt variant="small">{p.habits.length} chosen. Up to {MAX_HABITS}.</Txt>
+            <Txt variant="small">{p.habits.length} chosen. Pick as many as you like, and change them any time.</Txt>
           </>
         );
       case 'health':

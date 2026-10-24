@@ -1,6 +1,6 @@
 # Protyn
 
-A weekly plan for more protein and strength, made from the food Indian vegetarian and egg-eating home cooks already make. One Expo (React Native) codebase runs as an Android app, an iOS app and a responsive web app.
+A weekly plan for more protein and strength, made from the food Indian home cooks already make: vegetarian, eggetarian, Jain, vegan or non-vegetarian, from your own region. One Expo (React Native) codebase runs as an Android app, an iOS app and a responsive web app.
 
 > General wellness guidance, not medical advice. Recipes, protein estimates and exercises are a **starter library that has not yet been reviewed** by a registered dietitian or a certified trainer. Nothing here is clinically validated.
 
@@ -15,7 +15,7 @@ npm run typecheck
 npm run build:web  # static web build in dist/
 ```
 
-Open the app and choose **Try the demo** to see three weeks of sample data (Priya, Bengaluru), or **Get started** to set up your own plan. Data is stored on the device.
+Open the app and choose **Try the demo** to see three weeks of sample data (Rajashree, Bhubaneswar), or **Get started** to set up your own plan. Data is stored on the device.
 
 ### Turning on accounts (optional)
 

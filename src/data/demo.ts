@@ -3,8 +3,8 @@ import type { AppState, Level, SessionLog } from '../domain/types';
 import { sessionForDate } from '../domain/workouts';
 import { blankState } from './defaults';
 
-// Sample data for demo mode: Priya, 29, Bengaluru, vegetarian, South Indian
-// home food, dumbbells at home, three weeks in. Nothing here is a real person.
+// Sample data for demo mode: Rajashree, 29, Bhubaneswar, non-vegetarian, East
+// Indian (Odia) home food, dumbbells at home, three weeks in. Nothing here is a real person.
 
 export function demoState(today = new Date()): AppState {
   const s = blankState();
@@ -15,7 +15,7 @@ export function demoState(today = new Date()): AppState {
   s.onboarded = true;
   s.profile = {
     ...s.profile,
-    name: 'Priya',
+    name: 'Rajashree',
     birthYear: String(today.getFullYear() - 29),
     heightCm: '160',
     weightKg: '62',
@@ -26,8 +26,8 @@ export function demoState(today = new Date()): AppState {
     experience: 'beginner',
     minutes: '20',
     workoutDays: [1, 3, 5],
-    diet: 'veg',
-    cuisine: 'S',
+    diet: 'nonveg',
+    cuisine: 'E',
     allergies: [],
     allergiesConfirmed: true,
     place: 'home',

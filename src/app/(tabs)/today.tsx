@@ -10,12 +10,16 @@ import { goalNotice, isGentle, WELLNESS_NOTE } from '../../domain/safety';
 import { myHabits, proteinOn, weekNumber } from '../../domain/stats';
 import { SLOTS } from '../../domain/types';
 import { sessionOn, workoutMode } from '../../domain/workouts';
-import { Button, Chip, Choices, Header, LinkButton, Meter, Note, Row, Screen, Section, Tick, Txt } from '../../ui/components';
+import { Button, Chip, Choices, Hero, LinkButton, Note, Row, Screen, Section, Tick, Txt } from '../../ui/components';
+import { Ring } from '../../ui/icons';
+import { useColors } from '../../ui/theme';
+import { font } from '../../ui/tokens';
 import { CheckInCard, HabitChip, MealRow, MeButton, WeekDots } from '../../ui/pieces';
 
 const FEEL = { easy: 'too easy', right: 'just right', hard: 'too hard' };
 
 export default function Today() {
+  const c = useColors();
   const today = useToday();
   const { state } = useStore();
   const p = state.profile;
@@ -31,11 +35,42 @@ export default function Today() {
 
   return (
     <Screen>
-      <Header title={`${greeting(today)}, ${p.name || 'there'}`} eyebrow={`${fmtDate(today)} · Week ${weekNumber(state, today)}`} right={<MeButton />} />
-      <Row wrap gap={6}>
-        <Chip label={goal.name} />
-        {isGentle(p) ? <Chip label="Gentler defaults on" tone="coral" /> : null}
-      </Row>
+      <Hero>
+        <Row between align="flex-start">
+          <View style={{ flex: 1, gap: 4 }}>
+            <Txt variant="eyebrow" color={c.heroMuted}>
+              {fmtDate(today)} · Week {weekNumber(state, today)}
+            </Txt>
+            <Txt variant="screen" color={c.onHero}>
+              {greeting(today)}, {p.name || 'there'}
+            </Txt>
+          </View>
+          <MeButton />
+        </Row>
+        <Row gap={16} style={{ marginTop: 6 }}>
+          <Ring pct={lo ? got / lo : 0} size={104} stroke={11} track="rgba(255,255,255,0.14)" color={got >= lo ? c.band : c.coral}>
+            <Txt style={{ fontFamily: font.displayMedium, fontSize: 28, lineHeight: 30 }} color={c.onHero}>
+              {got}
+            </Txt>
+            <Txt variant="small" color={c.heroMuted}>
+              of {lo} g
+            </Txt>
+          </Ring>
+          <View style={{ flex: 1, gap: 6 }}>
+            <Txt variant="card" color={c.onHero}>
+              Protein today
+            </Txt>
+            <Txt variant="small" color={c.heroMuted}>
+              {got >= lo ? `You’re in your ${lo}–${hi} g range today.` : `About ${lo - got} g to go. ${proteinTip(p)}`}
+            </Txt>
+            <Button label="+ Plate check-in" kind="hero" small onPress={() => router.push('/plate')} />
+          </View>
+        </Row>
+        <Row wrap gap={6}>
+          <Chip label={goal.name} tone="hero" />
+          {isGentle(p) ? <Chip label="Gentler defaults on" tone="coral" /> : null}
+        </Row>
+      </Hero>
       {p.why ? <Txt variant="muted">Your why: {p.why}</Txt> : null}
       {notice ? <Note tone="why">{notice}</Note> : null}
 
@@ -70,17 +105,6 @@ export default function Today() {
             {plan.progression !== 'easier' ? <LinkButton label="Short on energy? Start the easier version" onPress={() => start(true)} /> : null}
           </>
         )}
-      </Section>
-
-      <Section title="Protein today" right={<Button label="+ Plate check-in" kind="soft" small onPress={() => router.push('/plate')} />}>
-        <Row gap={8} align="flex-end">
-          <Txt variant="big">{got}</Txt>
-          <Txt variant="muted" style={{ marginBottom: 4 }}>
-            g of {lo}–{hi} g
-          </Txt>
-        </Row>
-        <Meter value={got} lo={lo} hi={hi} />
-        <Txt variant="small">{got >= lo ? 'You’re in your range today.' : `About ${lo - got} g to go. ${proteinTip(p)}`}</Txt>
       </Section>
 
       <Section title="Today’s meals" right={<LinkButton label="Week plan" onPress={() => router.navigate('/food')} />}>

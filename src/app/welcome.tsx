@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useStore } from '../data/store';
 import { cloudEnabled } from '../data/supabase';
-import { Button, Card, Note, Row, Screen, Txt } from '../ui/components';
+import { Button, Card, Chip, Hero, Note, Row, Screen, Txt } from '../ui/components';
 import { Icon, Logo, PlateArt } from '../ui/icons';
 import { useColors } from '../ui/theme';
 import { font } from '../ui/tokens';
@@ -38,16 +38,23 @@ export default function Welcome() {
 
   return (
     <Screen>
-      <Row gap={12}>
-        <Logo size={44} />
-        <Txt style={{ fontFamily: font.displayBold, fontSize: 40, lineHeight: 44, letterSpacing: -1.6 }} role="heading">protyn</Txt>
-      </Row>
-      <Row gap={16} align="center">
-        <PlateArt size={92} color={c.sageDeep} />
-        <Txt style={{ flex: 1, fontFamily: font.display, fontSize: 20, lineHeight: 26 }}>
-          Your weekly plan for more protein and strength, made from the food your family already cooks.
-        </Txt>
-      </Row>
+      <Hero>
+        <Row gap={12}>
+          <Logo size={44} />
+          <Txt style={{ fontFamily: font.displayBold, fontSize: 40, lineHeight: 44, letterSpacing: -1.6 }} color={c.onHero} role="heading">protyn</Txt>
+        </Row>
+        <Row gap={16} align="center">
+          <PlateArt size={92} color={c.onHero} />
+          <Txt style={{ flex: 1, fontFamily: font.display, fontSize: 20, lineHeight: 26 }} color={c.onHero}>
+            Your weekly plan for more protein and strength, made from the food your family already cooks.
+          </Txt>
+        </Row>
+        <Row wrap gap={6}>
+          <Chip label="Veg, egg and non-veg" tone="hero" />
+          <Chip label="Your regional food" tone="hero" />
+          <Chip label="20-minute workouts" tone="hero" />
+        </Row>
+      </Hero>
       <Card>
         <Txt variant="card">What we are</Txt>
         <Txt variant="muted">A weekly plan from your own regional food, measured in katoris and rotis, with short strength sessions and a 30-second daily check-in.</Txt>
@@ -72,7 +79,7 @@ export default function Welcome() {
           }
         />
         <Button
-          label="Try the demo (Priya, Bengaluru)"
+          label="Try the demo (Rajashree, Bhubaneswar)"
           kind="ghost"
           block
           hint="Opens the app with sample data. Nothing you enter is kept if you reset."

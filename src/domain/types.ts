@@ -6,9 +6,10 @@ export type Slot = 'b' | 'l' | 's' | 'd';
 export const SLOTS: Slot[] = ['b', 'l', 's', 'd'];
 export const SLOT_LABEL: Record<Slot, string> = { b: 'Breakfast', l: 'Lunch', s: 'Snack', d: 'Dinner' };
 
-export type Diet = 'veg' | 'egg' | 'jain' | 'vegan';
+export type Diet = 'veg' | 'egg' | 'nonveg' | 'jain' | 'vegan';
 export type Cuisine = 'N' | 'S' | 'E' | 'W';
-export type Allergen = 'dairy' | 'gluten' | 'peanut' | 'treenut' | 'soy' | 'egg' | 'sesame';
+export type DishDiet = 'veg' | 'egg' | 'nonveg';
+export type Allergen = 'dairy' | 'gluten' | 'peanut' | 'treenut' | 'soy' | 'egg' | 'sesame' | 'fish' | 'shellfish';
 export type GoalId = 'fitness' | 'strength' | 'endurance' | 'lose' | 'gain' | 'maintain';
 export type Activity = 'low' | 'light' | 'active';
 export type Experience = 'beginner' | 'some' | 'regular';
@@ -17,10 +18,10 @@ export type Equipment = 'dumbbells' | 'mat' | 'band' | 'chair';
 export type HealthFlag = 'pregnant' | 'condition' | 'injury' | 'ed' | 'meds';
 export type SleepBand = 'under6' | '6to7' | '7to8' | 'over8';
 export type WaterBand = 'low' | 'mid' | 'high';
-export type Staple = 'paneer' | 'tofu' | 'soya' | 'sprouts' | 'curd' | 'eggs';
+export type Staple = 'paneer' | 'tofu' | 'soya' | 'sprouts' | 'curd' | 'eggs' | 'chicken' | 'fish' | 'mutton';
 export type MeasureKind = 'weight' | 'waist' | 'hips' | 'chest' | 'arm';
 
-export type IngredientGroup = 'P' | 'D' | 'C' | 'V' | 'X' | 'E';
+export type IngredientGroup = 'P' | 'D' | 'C' | 'V' | 'X' | 'E' | 'M';
 
 export type Ingredient = { name: string; group: IngredientGroup; qty?: string };
 
@@ -28,8 +29,8 @@ export type Dish = {
   id: string;
   slot: Slot;
   name: string;
-  /** 'veg' dishes contain no egg; 'egg' dishes contain egg. */
-  diet: 'veg' | 'egg';
+  /** 'veg' dishes contain no egg; 'egg' dishes contain egg; 'nonveg' dishes contain meat, chicken or fish. */
+  diet: DishDiet;
   /** True when the dish has no root vegetables, onion or garlic. */
   jain: boolean;
   cuisines: Cuisine[];
@@ -49,7 +50,7 @@ export type QuickFood = {
   name: string;
   unit: string;
   protein: number;
-  diet: 'veg' | 'egg';
+  diet: DishDiet;
   allergens: Allergen[];
 };
 

@@ -6,7 +6,7 @@ import { useStore, useToday } from '../data/store';
 import { dayIndex, daysBetween, parseKey } from '../domain/dates';
 import { whyThis } from '../domain/nutrition';
 import { provider } from '../domain/provider';
-import { ALLERGEN_NOTE } from '../domain/safety';
+import { ALLERGEN_NOTE, MEAT_NOTE } from '../domain/safety';
 import type { Slot } from '../domain/types';
 import { SLOT_LABEL } from '../domain/types';
 import { Button, Chip, Note, Row, Screen, SheetHeader, Txt } from '../ui/components';
@@ -74,6 +74,7 @@ export default function Recipe() {
         ))}
       </View>
       {dish.substitution ? <Note>Swap idea: {dish.substitution}</Note> : null}
+      {dish.diet === 'nonveg' ? <Note>{MEAT_NOTE}</Note> : null}
       {state.profile.allergies.length || state.profile.otherAllergy ? <Note>{ALLERGEN_NOTE}</Note> : null}
       <Button
         label={saved ? 'Saved to your meals' : 'Save this meal'}
