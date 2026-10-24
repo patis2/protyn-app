@@ -10,7 +10,8 @@ import type { MeasureKind } from '../../domain/types';
 import { MEASURE_LABEL, measureUnit } from '../../domain/validation';
 import { Button, Card, Choice, Choices, Header, Note, Row, Screen, Section, Toggle, Txt } from '../../ui/components';
 import { BarChart, LineChart } from '../../ui/charts';
-import { MeButton } from '../../ui/pieces';
+import { MeButton, RewardBadges } from '../../ui/pieces';
+import { rewards } from '../../domain/rewards';
 import { useColors, useToast } from '../../ui/theme';
 
 const KINDS: MeasureKind[] = ['weight', 'waist', 'hips', 'chest', 'arm'];
@@ -28,6 +29,7 @@ export default function Progress() {
   const wk = weekNumber(state, today);
   const kinds = state.settings.tracked.filter((k) => !(k === 'weight' && hideWeight(p)));
   const energy = hist.filter((h) => h.energy != null);
+  const allRewards = rewards(state, today);
 
   const share = async () => {
     const text = `I’ve done ${total} strength sessions in ${wk} week${wk > 1 ? 's' : ''} with Protyn.`;
@@ -62,6 +64,11 @@ export default function Progress() {
           <Txt bold>{cur.habitPct}%</Txt>
         </Row>
         <Txt color={c.sageDeep}>{weekMessage(cur)}</Txt>
+      </Section>
+
+      <Section title="Rewards" right={<Txt variant="small">{allRewards.filter((r) => r.earned).length} of {allRewards.length}</Txt>}>
+        <RewardBadges list={allRewards} />
+        <Txt variant="small">Tap an earned badge to share it on WhatsApp, Instagram or Facebook.</Txt>
       </Section>
 
       <Card>

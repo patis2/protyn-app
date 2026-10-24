@@ -5,7 +5,7 @@ import { DAYS } from '../../content/library';
 import { DISH_BY_ID } from '../../content/dishes';
 import { useStore, useToday } from '../../data/store';
 import { addDays, dayIndex, fmtDate, keyOf, weekDays, weekStart } from '../../domain/dates';
-import { cuisineLabel, dietLabel, proteinRange } from '../../domain/nutrition';
+import { dietLabel, homeLabel, proteinRange } from '../../domain/nutrition';
 import { WELLNESS_NOTE } from '../../domain/safety';
 import { plannedProtein } from '../../domain/stats';
 import { SLOTS } from '../../domain/types';
@@ -29,7 +29,7 @@ export default function Food() {
 
   return (
     <Screen>
-      <Header title="Meal plan" eyebrow={`${cuisineLabel(p.cuisine)} · ${dietLabel(p.diet)}`} right={<MeButton />} />
+      <Header title="Meal plan" eyebrow={`${homeLabel(p)} · ${dietLabel(p.diet)}`} right={<MeButton />} />
       <View role="radiogroup" accessibilityLabel="Day" style={{ flexDirection: 'row', gap: 4 }}>
         {days.map((d, i) => {
           const on = i === day;

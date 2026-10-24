@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { ALLERGENS, DAYS, GOALS, HABITS, HEALTH_FLAGS, MEAT_STAPLES, STAPLES } from '../content/library';
 import { useStore } from '../data/store';
-import { keyOf } from '../domain/dates';
-import { cuisineLabel, proteinRange } from '../domain/nutrition';
+import { firstName, keyOf } from '../domain/dates';
+import { proteinRange } from '../domain/nutrition';
+import { STATE_BY_CODE, STATES } from '../content/states';
 import { provider } from '../domain/provider';
 import { ALLERGEN_NOTE, goalNotice, isGentle, PROFESSIONAL_NOTE } from '../domain/safety';
 import type { Profile } from '../domain/types';
@@ -31,6 +32,7 @@ export default function Onboarding() {
   const [i, setI] = useState(0);
   const [tried, setTried] = useState(false);
   const [showWhy, setShowWhy] = useState(false);
+  const [stateQuery, setStateQuery] = useState('');
   const [avoidText, setAvoidText] = useState(p.avoidFoods.join(', '));
   const step = STEPS[i];
   const error = stepError(step.key, p);
@@ -53,7 +55,7 @@ export default function Onboarding() {
         s.logs.measurements.push({ date: today, kind, value: Number(raw) });
       };
       record('weight', p.weightKg, s.profile.weightKg);
-      record('waist', p.waistCm, s.profile.waistCm);
+      record('waist', p.waistIn, s.profile.waistIn);
       s.profile = { ...p, avoidFoods: parseAvoid(avoidText), startedAt: s.onboarded ? s.profile.startedAt : today };
       if (!s.settings.consents.health) s.profile.health = [];
       if (p.place === 'gym') s.settings.moveMode = 'gym';
@@ -83,14 +85,14 @@ export default function Onboarding() {
       case 'about':
         return (
           <>
-            <Field label="First name or display name" value={p.name} onChangeText={(v) => set('name', v)} autoComplete="given-name" maxLength={40} />
+            <Field label="Full name" value={p.name} onChangeText={(v) => set('name', v)} autoComplete="name" maxLength={60} hint="Shown on rewards you choose to share." />
             <Row wrap gap={12} align="flex-start">
               <Field label="Birth year" value={p.birthYear} onChangeText={(v) => set('birthYear', v.replace(/\D/g, ''))} inputMode="numeric" keyboardType="number-pad" maxLength={4} placeholder="e.g. 1995" />
               <Field label="Height (cm)" value={p.heightCm} onChangeText={(v) => set('heightCm', v.replace(/[^\d.]/g, ''))} inputMode="decimal" keyboardType="decimal-pad" placeholder="e.g. 160" />
             </Row>
             <Row wrap gap={12} align="flex-start">
               <Field label="Weight (kg)" value={p.weightKg} onChangeText={(v) => set('weightKg', v.replace(/[^\d.]/g, ''))} inputMode="decimal" keyboardType="decimal-pad" placeholder="e.g. 62" />
-              <Field label="Waist (cm)" optional value={p.waistCm} onChangeText={(v) => set('waistCm', v.replace(/[^\d.]/g, ''))} inputMode="decimal" keyboardType="decimal-pad" />
+              <Field label="Waist (inches)" optional value={p.waistIn} onChangeText={(v) => set('waistIn', v.replace(/[^\d.]/g, ''))} inputMode="decimal" keyboardType="decimal-pad" placeholder="e.g. 32" />
             </Row>
           </>
         );
@@ -131,10 +133,12 @@ export default function Onboarding() {
               <Choice half label="Jain" sub="No root vegetables" on={p.diet === 'jain'} onPress={() => set('diet', 'jain')} />
               <Choice half label="Vegan" sub="No dairy or eggs" on={p.diet === 'vegan'} onPress={() => set('diet', 'vegan')} />
             </Choices>
-            <Txt variant="card">Your home cooking</Txt>
+            <Txt variant="card">Which state’s food do you cook at home?</Txt>
+            <Txt variant="small">We plan meals from your state’s own dishes.</Txt>
+            <Field label="Find your state" value={stateQuery} onChangeText={setStateQuery} placeholder="e.g. Odisha" autoComplete="off" />
             <Choices>
-              {(['N', 'S', 'E', 'W'] as const).map((cu) => (
-                <Choice half key={cu} label={cuisineLabel(cu)} on={p.cuisine === cu} onPress={() => set('cuisine', cu)} />
+              {STATES.filter((st) => st.code === p.state || st.name.toLowerCase().includes(stateQuery.trim().toLowerCase())).map((st) => (
+                <Choice key={st.code} label={st.name} on={p.state === st.code} onPress={() => setP((prev) => ({ ...prev, state: st.code, cuisine: STATE_BY_CODE[st.code].region }))} />
               ))}
             </Choices>
             <Txt variant="card">Allergies</Txt>
@@ -222,7 +226,7 @@ export default function Onboarding() {
         return (
           <>
             <Card tint>
-              <Txt variant="eyebrow">{p.name ? `${p.name}’s first week` : 'Your first week'}</Txt>
+              <Txt variant="eyebrow">{p.name ? `${firstName(p.name)}’s first week` : 'Your first week'}</Txt>
               <Txt variant="title">{g.name}</Txt>
               <Txt>
                 {p.workoutDays.length} strength sessions of {p.minutes} minutes, {p.place === 'gym' ? 'at the gym' : p.place === 'both' ? 'at home or the gym' : 'at home'}, on {days}.

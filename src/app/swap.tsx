@@ -4,7 +4,7 @@ import { View } from 'react-native';
 import { DAYS } from '../content/library';
 import { useStore, useToday } from '../data/store';
 import { dayIndex, parseKey } from '../domain/dates';
-import { allergenLabel, dietLabel, swapKey } from '../domain/nutrition';
+import { allergenLabel, dietLabel, swapKey, isHome } from '../domain/nutrition';
 import { provider } from '../domain/provider';
 import type { Slot } from '../domain/types';
 import { SLOT_LABEL } from '../domain/types';
@@ -48,7 +48,7 @@ export default function Swap() {
               <View style={{ flex: 1 }}>
                 <Txt>{d.name}</Txt>
                 <Txt variant="small">
-                  {d.portion} · {d.protein} g{d.cuisines.includes(p.cuisine || 'N') ? '' : ' · other region'}
+                  {d.portion} · {d.protein} g{isHome(p, d) ? '' : ' · other state'}
                 </Txt>
               </View>
               <Button label="Use" kind="soft" small onPress={() => use(d.id, d.name)} hint={`Use ${d.name}`} />

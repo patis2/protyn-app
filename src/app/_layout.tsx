@@ -47,6 +47,7 @@ function Nav() {
       <Stack.Screen name="measure" options={modal} />
       <Stack.Screen name="export" options={modal} />
       <Stack.Screen name="delete" options={modal} />
+      <Stack.Screen name="reward" options={modal} />
     </Stack>
   );
 }

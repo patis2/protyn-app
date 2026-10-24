@@ -1,10 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
-import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
+import Svg, { Circle, Defs, Ellipse, G, Path, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { useTween } from './motion';
 import { useColors } from './theme';
 
-export type IconName = 'home' | 'food' | 'move' | 'habits' | 'progress' | 'user' | 'check' | 'back' | 'close' | 'list' | 'plus' | 'minus' | 'heart' | 'shield';
+export type IconName = 'home' | 'food' | 'move' | 'habits' | 'progress' | 'user' | 'check' | 'back' | 'close' | 'list' | 'plus' | 'minus' | 'heart' | 'shield' | 'plan' | 'plate' | 'dumbbell' | 'trophy' | 'share' | 'download';
 
 type Props = { name: IconName; size?: number; color: string; strokeWidth?: number };
 
@@ -26,6 +26,12 @@ export function Icon({ name, size = 22, color, strokeWidth = 1.8 }: Props) {
     minus: <Path d="M5 12h14" {...common} strokeWidth={2} />,
     heart: <Path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z" {...common} />,
     shield: <Path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" {...common} />,
+    plan: (<><Rect x={4} y={5} width={16} height={15} rx={2.5} {...common} /><Path d="M4 10h16M8.5 3v4M15.5 3v4M8 14.5l2 2 4-4" {...common} /></>),
+    plate: (<><Circle cx={12} cy={12} r={8.5} {...common} /><Circle cx={12} cy={12} r={4.5} {...common} /><Path d="M2 5v5M2 7.5h0M22 4v16" {...common} /></>),
+    dumbbell: <Path d="M3 9.5v5M6 7v10M18 7v10M21 9.5v5M6 12h12" {...common} strokeWidth={2.2} />,
+    trophy: (<><Path d="M8 4h8v5a4 4 0 01-8 0V4z" {...common} /><Path d="M8 6H5a3 3 0 003 4M16 6h3a3 3 0 01-3 4M12 13v4M8.5 20h7M10 17h4" {...common} /></>),
+    share: (<><Circle cx={18} cy={5.5} r={2.5} {...common} /><Circle cx={6} cy={12} r={2.5} {...common} /><Circle cx={18} cy={18.5} r={2.5} {...common} /><Path d="M8.2 10.8l7.6-4M8.2 13.2l7.6 4" {...common} /></>),
+    download: <Path d="M12 4v11M7 10.5l5 5 5-5M5 20h14" {...common} />,
   };
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
@@ -34,15 +40,51 @@ export function Icon({ name, size = 22, color, strokeWidth = 1.8 }: Props) {
   );
 }
 
-/** The Protyn app icon: strength bar and protein ring on deep sage. */
+/** The Protyn mark: a plate of home food and a dumbbell on deep sage. */
 export function Logo({ size = 40 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 120 120" accessibilityLabel="Protyn" role="img">
       <Rect width={120} height={120} rx={28} fill="#2F5240" />
-      <Rect x={30} y={30} width={11} height={60} rx={5.5} fill="#F8F1E9" />
-      <Circle cx={70} cy={50} r={18} fill="none" stroke="#677E6F" strokeWidth={11} />
-      <Circle cx={70} cy={50} r={18} fill="none" stroke="#E8735A" strokeWidth={11} strokeDasharray="85 200" transform="rotate(-90 70 50)" />
+      <LogoArt />
     </Svg>
+  );
+}
+
+/** Everything inside the tile, on the 120-unit grid. Shared by the static and animated marks. */
+export function LogoArt({ parts = 'all' }: { parts?: 'all' | 'plate' | 'food' | 'dumbbell' }) {
+  const plate = (
+    <>
+      <Circle cx={54} cy={58} r={31} fill="#F8F1E9" />
+      <Circle cx={54} cy={58} r={23} fill="none" stroke="#E4DACC" strokeWidth={2} />
+    </>
+  );
+  const food = (
+    <>
+      <Circle cx={45} cy={51} r={9} fill="#E8A33D" />
+      <Circle cx={45} cy={51} r={5.5} fill="#F2C46A" />
+      <Path d="M58 68 C 58 56, 68 50, 74 50 C 74 60, 68 70, 58 68 Z" fill="#6FA07A" />
+      <Path d="M60 66 L 71 53" stroke="#2F5240" strokeWidth={1.4} strokeLinecap="round" />
+      <Circle cx={44} cy={70} r={6} fill="#D9B98A" />
+    </>
+  );
+  const dumbbell = (
+    <G transform="rotate(-35 84 86)">
+      <Rect x={66} y={83} width={36} height={6} rx={3} fill="#E8735A" />
+      <Rect x={64} y={75} width={8} height={22} rx={3} fill="#E8735A" />
+      <Rect x={96} y={75} width={8} height={22} rx={3} fill="#E8735A" />
+      <Rect x={58} y={78} width={6} height={16} rx={2.5} fill="#F08D74" />
+      <Rect x={104} y={78} width={6} height={16} rx={2.5} fill="#F08D74" />
+    </G>
+  );
+  if (parts === 'plate') return plate;
+  if (parts === 'food') return food;
+  if (parts === 'dumbbell') return dumbbell;
+  return (
+    <>
+      {plate}
+      {food}
+      {dumbbell}
+    </>
   );
 }
 

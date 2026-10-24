@@ -4,7 +4,7 @@ import { Pressable, View } from 'react-native';
 import { useStore } from '../data/store';
 import { cloudEnabled } from '../data/supabase';
 import { Button, Card, Chip, Hero, Note, Row, Screen, Txt } from '../ui/components';
-import { Icon, Logo, PlateArt } from '../ui/icons';
+import { Icon, Logo } from '../ui/icons';
 import { useColors } from '../ui/theme';
 import { font } from '../ui/tokens';
 
@@ -43,15 +43,13 @@ export default function Welcome() {
           <Logo size={44} />
           <Txt style={{ fontFamily: font.displayBold, fontSize: 40, lineHeight: 44, letterSpacing: -1.6 }} color={c.onHero} role="heading">protyn</Txt>
         </Row>
-        <Row gap={16} align="center">
-          <PlateArt size={92} color={c.onHero} />
-          <Txt style={{ flex: 1, fontFamily: font.display, fontSize: 20, lineHeight: 26 }} color={c.onHero}>
-            Your weekly plan for more protein and strength, made from the food your family already cooks.
-          </Txt>
-        </Row>
+        <Txt style={{ fontFamily: font.display, fontSize: 24, lineHeight: 30 }} color={c.onHero}>
+          Plan it. Plate it. Pump it.
+        </Txt>
+        <Txt color={c.heroMuted}>A weekly plan for more protein and strength, made from your own state’s home food.</Txt>
         <Row wrap gap={6}>
           <Chip label="Veg, egg and non-veg" tone="hero" />
-          <Chip label="Your regional food" tone="hero" />
+          <Chip label="Food from your state" tone="hero" />
           <Chip label="20-minute workouts" tone="hero" />
         </Row>
       </Hero>

@@ -7,10 +7,12 @@ import { daysBetween, keyOf, weekDays, weekStart } from '../domain/dates';
 import { proteinRange } from '../domain/nutrition';
 import { provider } from '../domain/provider';
 import { habitDone, proteinOn } from '../domain/stats';
+import type { Reward } from '../domain/rewards';
 import type { CheckIn, HabitDef, Slot } from '../domain/types';
 import { SLOT_LABEL } from '../domain/types';
 import { sessionForDate, sessionOn } from '../domain/workouts';
 import { Choice, IconButton, ListItem, Segmented, Tick, Txt } from './components';
+import { Icon } from './icons';
 import { useColors } from './theme';
 import { font } from './tokens';
 
@@ -149,4 +151,33 @@ export function WeekDots({ today }: { today: Date }) {
 
 export function MeButton() {
   return <IconButton icon="user" label="Me, profile and privacy" onPress={() => router.navigate('/me')} />;
+}
+
+/** Milestone badges. Earned ones open a shareable card; locked ones show how close you are. */
+export function RewardBadges({ list }: { list: Reward[] }) {
+  const c = useColors();
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+      {list.map((r) => (
+        <Pressable
+          key={r.id}
+          accessibilityRole="button"
+          accessibilityLabel={r.earned ? `${r.title}, earned. Open to share.` : `${r.title}, locked. ${Math.round(r.progress * 100)}% there.`}
+          onPress={() => router.push({ pathname: '/reward', params: { id: r.id } })}
+          style={({ pressed }) => [{ width: 96, alignItems: 'center', gap: 6, opacity: pressed ? 0.8 : 1 }]}
+        >
+          <View style={{ width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center', backgroundColor: r.earned ? c.hero : c.sunk, borderWidth: 3, borderColor: r.earned ? c.coral : c.line }}>
+            {r.earned ? (
+              <Txt color={c.onHero} style={{ fontFamily: font.displayBold, fontSize: 20, lineHeight: 24 }}>{r.figure}</Txt>
+            ) : (
+              <Icon name={r.icon} size={24} color={c.muted} />
+            )}
+          </View>
+          <Txt variant="small" center color={r.earned ? c.ink : c.muted} numberOfLines={2}>
+            {r.title}
+          </Txt>
+        </Pressable>
+      ))}
+    </View>
+  );
 }

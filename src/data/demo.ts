@@ -15,11 +15,11 @@ export function demoState(today = new Date()): AppState {
   s.onboarded = true;
   s.profile = {
     ...s.profile,
-    name: 'Rajashree',
+    name: 'Rajashree Mohanty',
     birthYear: String(today.getFullYear() - 29),
     heightCm: '160',
     weightKg: '62',
-    waistCm: '78',
+    waistIn: '30.5',
     goal: 'strength',
     why: 'Keep up with my nephews and feel strong at work',
     activity: 'light',
@@ -27,6 +27,7 @@ export function demoState(today = new Date()): AppState {
     minutes: '20',
     workoutDays: [1, 3, 5],
     diet: 'nonveg',
+    state: 'OD',
     cuisine: 'E',
     allergies: [],
     allergiesConfirmed: true,
@@ -51,7 +52,7 @@ export function demoState(today = new Date()): AppState {
     s.logs.checkins[k] = { energy, mood: i % 5 === 1 ? 'ok' : 'good', diff: 'right' };
     const t = sessionForDate(s.profile, d);
     if (t && !(i === 10)) sessions.push({ date: k, sessionId: t.id, feel: i < 7 ? 'right' : i % 2 ? 'easy' : 'right', easier: [], setsDone: 12, painReported: false });
-    if (dayIndex(d) === 0) s.logs.measurements.push({ date: k, kind: 'weight', value: 62.6 - i * 0.03 }, { date: k, kind: 'waist', value: 78 - i * 0.05 });
+    if (dayIndex(d) === 0) s.logs.measurements.push({ date: k, kind: 'weight', value: 62.6 - i * 0.03 }, { date: k, kind: 'waist', value: Math.round((30.7 - i * 0.02) * 10) / 10 });
   }
   s.logs.sessions = sessions;
   s.logs.notes[keyOf(addDays(today, -3))] = 'Slept badly, skipped the walk. Office dinner tonight.';

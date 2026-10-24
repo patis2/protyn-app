@@ -6,7 +6,7 @@ import { DAYS, GOALS, HABIT_BY_ID } from '../../content/library';
 import { syncReminders, remindersSupported } from '../../data/reminders';
 import { useStore } from '../../data/store';
 import { signOut } from '../../data/supabase';
-import { allergenLabel, cuisineLabel, dietLabel } from '../../domain/nutrition';
+import { allergenLabel, dietLabel, homeLabel } from '../../domain/nutrition';
 import { provider } from '../../domain/provider';
 import { PROFESSIONAL_NOTE, STOP_NOTE, WELLNESS_NOTE } from '../../domain/safety';
 import type { Reminders } from '../../domain/types';
@@ -57,7 +57,7 @@ export default function Me() {
           <View style={{ flex: 1 }}>
             <Txt variant="card">{p.name}</Txt>
             <Txt variant="small">
-              {age ?? '–'} · {dietLabel(p.diet)} · {cuisineLabel(p.cuisine)}
+              {age ?? '–'} · {dietLabel(p.diet)} · {homeLabel(p)}
             </Txt>
           </View>
           {state.mode === 'demo' ? <Chip label="Demo" tone="amber" /> : state.mode === 'cloud' ? <Chip label="Synced" /> : <Chip label="On this device" tone="line" />}

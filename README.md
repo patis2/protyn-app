@@ -1,6 +1,6 @@
 # Protyn
 
-A weekly plan for more protein and strength, made from the food Indian home cooks already make: vegetarian, eggetarian, Jain, vegan or non-vegetarian, from your own region. One Expo (React Native) codebase runs as an Android app, an iOS app and a responsive web app.
+A weekly plan for more protein and strength, made from the food Indian home cooks already make: vegetarian, eggetarian, Jain, vegan or non-vegetarian, from your own state. Tagline: *Plan it. Plate it. Pump it.* One Expo (React Native) codebase runs as an Android app, an iOS app and a responsive web app.
 
 > General wellness guidance, not medical advice. Recipes, protein estimates and exercises are a **starter library that has not yet been reviewed** by a registered dietitian or a certified trainer. Nothing here is clinically validated.
 
@@ -34,7 +34,7 @@ Sign-in then uses a 6-digit code sent by email. Phone OTP can be switched on in 
 | Food | Week view, swap, recipe with portions in katoris, steps, substitutions and "why this", mark eaten, save meals, plate check-in for off-plan food, shopping list grouped by type (copy or share). |
 | Move | Week schedule on your chosen days, home or gym, session details, workout player with warm-up, sets, rest timer, easier and harder options, "something hurts" flow, cool-down and feedback. |
 | Habits | Up to five habits to build or cut back on, daily ticks, week view, notes, no streak penalties. |
-| Progress | Weekly summary, sessions, protein days, habits and energy trends, optional measurements (weight, waist, hips, chest, arm) with charts, milestone share. |
+| Progress | Weekly summary, sessions, protein days, habits and energy trends, optional measurements (weight in kg; waist, hips, chest and arm in inches) with charts, and shareable milestone reward cards for WhatsApp, Instagram and Facebook (no health data on the card). |
 | Me | Profile and goal editing, reminders, consents, export (JSON file), delete data, safety notes. |
 
 ## Safety rules (src/domain/safety.ts, nutrition.ts, workouts.ts)

@@ -39,3 +39,6 @@ export function greeting(d: Date) {
   const h = d.getHours();
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
+
+/** The first word of a full name, for friendly greetings. */
+export const firstName = (full: string) => full.trim().split(/\s+/)[0] ?? '';

@@ -27,7 +27,7 @@ export default function Measure() {
       s.logs.measurements = s.logs.measurements.filter((m) => !(m.kind === kind && m.date === k));
       s.logs.measurements.push({ date: k, kind, value: v });
       if (kind === 'weight') s.profile.weightKg = String(v);
-      if (kind === 'waist') s.profile.waistCm = String(v);
+      if (kind === 'waist') s.profile.waistIn = String(v);
     });
     toast('Saved.');
     close();

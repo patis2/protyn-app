@@ -7,7 +7,11 @@ export const SLOTS: Slot[] = ['b', 'l', 's', 'd'];
 export const SLOT_LABEL: Record<Slot, string> = { b: 'Breakfast', l: 'Lunch', s: 'Snack', d: 'Dinner' };
 
 export type Diet = 'veg' | 'egg' | 'nonveg' | 'jain' | 'vegan';
-export type Cuisine = 'N' | 'S' | 'E' | 'W';
+export type Cuisine = 'N' | 'S' | 'E' | 'W' | 'C' | 'NE';
+export type StateCode =
+  | 'AN' | 'AP' | 'AR' | 'AS' | 'BR' | 'CH' | 'CG' | 'DN' | 'DL' | 'GA' | 'GJ' | 'HR'
+  | 'HP' | 'JK' | 'JH' | 'KA' | 'KL' | 'LA' | 'LD' | 'MP' | 'MH' | 'MN' | 'ML' | 'MZ'
+  | 'NL' | 'OD' | 'PY' | 'PB' | 'RJ' | 'SK' | 'TN' | 'TG' | 'TR' | 'UP' | 'UK' | 'WB';
 export type DishDiet = 'veg' | 'egg' | 'nonveg';
 export type Allergen = 'dairy' | 'gluten' | 'peanut' | 'treenut' | 'soy' | 'egg' | 'sesame' | 'fish' | 'shellfish';
 export type GoalId = 'fitness' | 'strength' | 'endurance' | 'lose' | 'gain' | 'maintain';
@@ -33,6 +37,9 @@ export type Dish = {
   diet: DishDiet;
   /** True when the dish has no root vegetables, onion or garlic. */
   jain: boolean;
+  /** States where this is everyday home food, or 'all' for dishes cooked across India. */
+  states: StateCode[] | 'all';
+  /** Regions derived from `states`, used when a state's own dishes run short. */
   cuisines: Cuisine[];
   /** Estimated protein in grams for the stated portion. Pending dietitian review. */
   protein: number;
@@ -85,7 +92,8 @@ export type Profile = {
   birthYear: string;
   heightCm: string;
   weightKg: string;
-  waistCm: string;
+  /** Waist in inches. */
+  waistIn: string;
   goal: GoalId | '';
   why: string;
   activity: Activity | '';
@@ -93,6 +101,8 @@ export type Profile = {
   minutes: '10' | '20' | '30';
   workoutDays: number[]; // 0 = Monday
   diet: Diet | '';
+  state: StateCode | '';
+  /** Region of `state`, kept for older saved profiles that only chose a region. */
   cuisine: Cuisine | '';
   allergies: Allergen[];
   allergiesConfirmed: boolean;
@@ -150,6 +160,10 @@ export type Settings = {
   showMeasurements: boolean;
   tracked: MeasureKind[];
   moveMode: 'home' | 'gym';
+  /** True once body measurements are stored in inches. */
+  inches: boolean;
+  /** Rewards the person has already been shown, so new ones can be celebrated once. */
+  seenRewards: string[];
 };
 
 export type AppMode = 'none' | 'demo' | 'local' | 'cloud';

@@ -2,9 +2,10 @@ import { Redirect, router } from 'expo-router';
 import React from 'react';
 import { Animated, Easing, Platform, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle } from 'react-native-svg';
+import Svg from 'react-native-svg';
 import { useStore } from '../data/store';
 import { Button, Txt } from '../ui/components';
+import { Icon, LogoArt, type IconName } from '../ui/icons';
 import { FadeIn, reduceMotion } from '../ui/motion';
 import { useColors } from '../ui/theme';
 import { font } from '../ui/tokens';
@@ -16,50 +17,45 @@ export default function Index() {
   return <Landing />;
 }
 
-/** First screen for new visitors: the logo builds itself, then the name and tagline arrive. */
+export const TAGLINE: [string, IconName][] = [
+  ['Plan it.', 'plan'],
+  ['Plate it.', 'plate'],
+  ['Pump it.', 'dumbbell'],
+];
+
+/** First screen for new visitors: just the mark, the name and the tagline. */
 function Landing() {
   const c = useColors();
   const insets = useSafeAreaInsets();
-  const { startDemo } = useStore();
   return (
     <View style={{ flex: 1, backgroundColor: c.hero, overflow: 'hidden' }}>
       <View pointerEvents="none" style={{ position: 'absolute', width: 420, height: 420, borderRadius: 210, right: -180, top: -160, backgroundColor: c.sage, opacity: 0.3 }} />
       <View pointerEvents="none" style={{ position: 'absolute', width: 300, height: 300, borderRadius: 150, left: -140, bottom: -110, backgroundColor: c.coral, opacity: 0.18 }} />
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, paddingTop: insets.top + 24, paddingBottom: 24, gap: 22 }}>
-        <AnimatedLogo size={120} />
-        <FadeIn delay={900}>
-          <Txt center role="heading" color={c.onHero} style={{ fontFamily: font.displayBold, fontSize: 56, lineHeight: 60, letterSpacing: -2.4 }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingTop: insets.top + 24, paddingBottom: insets.bottom + 24, gap: 26 }}>
+        <AnimatedLogo size={136} />
+        <FadeIn delay={1500}>
+          <Txt center role="heading" color={c.onHero} style={{ fontFamily: font.displayBold, fontSize: 60, lineHeight: 64, letterSpacing: -2.6 }}>
             protyn
           </Txt>
         </FadeIn>
-        <FadeIn delay={1200} style={{ gap: 10, maxWidth: 420 }}>
-          <Txt center color={c.onHero} style={{ fontFamily: font.display, fontSize: 22, lineHeight: 28 }}>
-            Ghar ka khana. Real protein. A stronger you.
-          </Txt>
-          <Txt center color={c.heroMuted}>
-            Weekly meal plans from your own regional kitchen, veg or non-veg, with short workouts you can do at home.
-          </Txt>
-        </FadeIn>
-        <FadeIn delay={1500} style={{ width: '100%', maxWidth: 360, gap: 10, marginTop: 8 }}>
+        <View accessible accessibilityLabel="Plan it. Plate it. Pump it." style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 10 }}>
+          {TAGLINE.map(([word, icon], i) => (
+            <FadeIn key={word} delay={1850 + i * 260}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingLeft: 8, paddingRight: 14, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.1)' }}>
+                <View style={{ width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: i === 2 ? c.coral : '#F8F1E9' }}>
+                  <Icon name={icon} size={18} color={i === 2 ? '#F8F1E9' : '#2F5240'} strokeWidth={2} />
+                </View>
+                <Txt color={c.onHero} style={{ fontFamily: font.display, fontSize: 19, lineHeight: 24 }}>
+                  {word}
+                </Txt>
+              </View>
+            </FadeIn>
+          ))}
+        </View>
+        <FadeIn delay={2800} style={{ width: '100%', maxWidth: 320, marginTop: 6 }}>
           <Button label="Get started" block kind="hero" onPress={() => router.push('/welcome')} />
-          <Button
-            label="Try the demo"
-            block
-            kind="ghost"
-            color={c.onHero}
-            hint="Opens the app with sample data for Rajashree from Bhubaneswar"
-            onPress={() => {
-              startDemo();
-              router.replace('/today');
-            }}
-          />
         </FadeIn>
       </View>
-      <FadeIn delay={1700} style={{ paddingBottom: insets.bottom + 14, paddingHorizontal: 16 }}>
-        <Txt variant="small" center color={c.heroMuted}>
-          General wellness guidance, not medical advice.
-        </Txt>
-      </FadeIn>
     </View>
   );
 }
@@ -67,42 +63,42 @@ function Landing() {
 const native = Platform.OS !== 'web';
 
 /**
- * The Protyn mark, built in three beats: the tile lands, the strength bar
- * rises, then the coral protein ring sweeps round. Static if motion is reduced.
+ * The Protyn mark, built in beats: the tile lands, the plate appears, the food
+ * pops onto it, then the dumbbell swings in. Static if motion is reduced.
  */
 function AnimatedLogo({ size }: { size: number }) {
   const still = reduceMotion();
-  const tile = React.useRef(new Animated.Value(still ? 1 : 0)).current;
-  const bar = React.useRef(new Animated.Value(still ? 1 : 0)).current;
-  const arc = React.useRef(new Animated.Value(still ? 1 : 0)).current;
-  const [sweep, setSweep] = React.useState(still ? 1 : 0);
+  const v = React.useRef([0, 1, 2, 3].map(() => new Animated.Value(still ? 1 : 0))).current;
+  const [tile, plate, food, bell] = v;
 
   React.useEffect(() => {
     if (still) return;
-    const id = arc.addListener(({ value }) => setSweep(value));
     const seq = Animated.sequence([
-      Animated.spring(tile, { toValue: 1, speed: 10, bounciness: 9, useNativeDriver: native }),
-      Animated.timing(bar, { toValue: 1, duration: 380, easing: Easing.out(Easing.back(1.6)), useNativeDriver: native }),
-      Animated.timing(arc, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.cubic), useNativeDriver: false }),
+      Animated.timing(tile, { toValue: 1, duration: 450, easing: Easing.out(Easing.back(1.4)), useNativeDriver: native }),
+      Animated.timing(plate, { toValue: 1, duration: 320, easing: Easing.out(Easing.cubic), useNativeDriver: native }),
+      Animated.spring(food, { toValue: 1, speed: 14, bounciness: 14, useNativeDriver: native }),
+      Animated.spring(bell, { toValue: 1, speed: 8, bounciness: 12, useNativeDriver: native }),
     ]);
     seq.start();
-    return () => {
-      seq.stop();
-      arc.removeListener(id);
-    };
-  }, [still, tile, bar, arc]);
+    return () => seq.stop();
+  }, [still, tile, plate, food, bell]);
 
-  const u = size / 120; // the mark is drawn on a 120-unit grid
-  const r = 18 * u;
-  const len = 2 * Math.PI * r;
+  const layer = (parts: 'plate' | 'food' | 'dumbbell', a: Animated.Value, transform: object[]) => (
+    <Animated.View style={{ position: 'absolute', top: 0, left: 0, width: size, height: size, opacity: a, transform }}>
+      <Svg width={size} height={size} viewBox="0 0 120 120" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <LogoArt parts={parts} />
+      </Svg>
+    </Animated.View>
+  );
+
   return (
     <Animated.View
       accessibilityRole="image"
-      accessibilityLabel="Protyn logo"
+      accessibilityLabel="Protyn logo: a plate of food and a dumbbell"
       style={{
         width: size,
         height: size,
-        borderRadius: 28 * u,
+        borderRadius: (28 / 120) * size,
         backgroundColor: '#2F5240',
         borderWidth: 1,
         borderColor: 'rgba(255,255,255,0.14)',
@@ -110,31 +106,12 @@ function AnimatedLogo({ size }: { size: number }) {
         transform: [{ scale: tile.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] }) }, { rotate: tile.interpolate({ inputRange: [0, 1], outputRange: ['-8deg', '0deg'] }) }],
       }}
     >
-      <Animated.View
-        style={{
-          position: 'absolute',
-          left: 30 * u,
-          top: 30 * u,
-          width: 11 * u,
-          height: 60 * u,
-          borderRadius: 5.5 * u,
-          backgroundColor: '#F8F1E9',
-          transform: [{ translateY: bar.interpolate({ inputRange: [0, 1], outputRange: [30 * u, 0] }) }, { scaleY: bar }],
-        }}
-      />
-      <Svg width={size} height={size} style={{ position: 'absolute' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Circle cx={70 * u} cy={50 * u} r={r} fill="none" stroke="#677E6F" strokeWidth={11 * u} opacity={sweep > 0 ? 1 : 0} />
-        <Circle
-          cx={70 * u}
-          cy={50 * u}
-          r={r}
-          fill="none"
-          stroke="#E8735A"
-          strokeWidth={11 * u}
-          strokeDasharray={`${len * 0.75 * sweep} ${len}`}
-          transform={`rotate(-90 ${70 * u} ${50 * u})`}
-        />
-      </Svg>
+      {layer('plate', plate, [{ scale: plate.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] }) }])}
+      {layer('food', food, [{ scale: food.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }])}
+      {layer('dumbbell', bell, [
+        { translateX: bell.interpolate({ inputRange: [0, 1], outputRange: [size * 0.25, 0] }) },
+        { rotate: bell.interpolate({ inputRange: [0, 1], outputRange: ['-70deg', '0deg'] }) },
+      ])}
     </Animated.View>
   );
 }

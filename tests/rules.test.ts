@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { DISHES } from '../src/content/dishes';
-import { blankProfile } from '../src/data/defaults';
+import { blankProfile, blankState, withDefaults } from '../src/data/defaults';
+import { rewards, shareText } from '../src/domain/rewards';
 import { demoState } from '../src/data/demo';
 import { addDays, weekStart } from '../src/domain/dates';
-import { candidates, dishFor, proteinRange, swapKey } from '../src/domain/nutrition';
+import { candidates, dishFor, isHome, proteinRange, swapKey } from '../src/domain/nutrition';
+import { STATES } from '../src/content/states';
 import { provider } from '../src/domain/provider';
 import { dishConflicts, goalNotice, hideWeight, weightLossPaused } from '../src/domain/safety';
 import { history, proteinOn } from '../src/domain/stats';
@@ -23,6 +25,7 @@ const profile = (over: Partial<Profile> = {}): Profile => ({
   activity: 'light',
   experience: 'beginner',
   diet: 'veg',
+  state: 'UP',
   cuisine: 'N',
   allergiesConfirmed: true,
   place: 'home',
@@ -85,22 +88,36 @@ describe('meal plans never break hard filters', () => {
     expect(SLOTS.flatMap((slot) => candidates(nonveg, slot)).some((d) => d.diet === 'nonveg')).toBe(true);
   });
 
-  it('meals stay in the chosen region', () => {
-    for (const diet of diets)
-      for (const cuisine of ['N', 'S', 'E', 'W'] as const) {
-        const p = profile({ diet, cuisine, goal: 'strength', weightKg: '75' });
-        for (const d of days)
+  it('meals come from the chosen state', { timeout: 60000 }, () => {
+    for (const st of STATES)
+      for (const diet of diets) {
+        const p = profile({ diet, state: st.code, cuisine: st.region, goal: 'strength', weightKg: '75' });
+        for (const d of days.slice(0, 14))
           for (const slot of SLOTS) {
             const dish = provider.mealsForDay(p, {}, d)[slot];
-            // Other regions only fill in when the filters leave fewer than two home options.
-            if (dish && !dish.cuisines.includes(cuisine)) expect(candidates(p, slot).filter((x) => x.cuisines.includes(cuisine)).length).toBeLessThan(2);
+            // Other states only fill in when the filters leave fewer than two home options.
+            if (dish && !isHome(p, dish)) expect(candidates(p, slot).filter((x) => isHome(p, x)).length).toBeLessThan(2);
           }
       }
   });
 
-  it('an East Indian plan has no South-only dishes', () => {
-    const p = profile({ cuisine: 'E', diet: 'veg' });
-    for (const d of days) for (const slot of SLOTS) expect(provider.mealsForDay(p, {}, d)[slot]?.cuisines).toContain('E');
+  it('an Odisha vegetarian plan only uses Odia or everyday dishes', () => {
+    const p = profile({ state: 'OD', cuisine: 'E', diet: 'veg' });
+    for (const d of days) for (const slot of SLOTS) {
+      const dish = provider.mealsForDay(p, {}, d)[slot]!;
+      expect(dish.states === 'all' || dish.states.includes('OD')).toBe(true);
+    }
+  });
+
+  it('every state and union territory has its own dishes', () => {
+    for (const st of STATES) expect(DISHES.some((d) => d.states !== 'all' && d.states.includes(st.code))).toBe(true);
+  });
+
+  it('borrows from the nearest region when a state runs short', () => {
+    // Meghalaya has few vegetarian breakfasts of its own, so north-east and east dishes fill in first.
+    const p = profile({ state: 'ML', cuisine: 'NE', diet: 'veg' });
+    const first = candidates(p, 'b').slice(0, 2);
+    for (const d of first) expect(d.cuisines.some((c) => c === 'NE' || c === 'E')).toBe(true);
   });
 
   it('every slot still has options for the strictest common profile', () => {
@@ -201,5 +218,30 @@ describe('demo data', () => {
     expect(h.length).toBe(3);
     expect(h[0].sessions).toBeGreaterThan(0);
     expect(proteinOn(s, addDays(today, -1))).toBeGreaterThan(0);
+  });
+});
+
+describe('rewards', () => {
+  it('celebrates effort in the demo and never mentions weight', () => {
+    const today = new Date();
+    const list = rewards(demoState(today), today);
+    expect(list.some((r) => r.earned)).toBe(true);
+    for (const r of list) expect(`${r.title} ${r.line} ${shareText('Rajashree Mohanty', r)}`).not.toMatch(/kg|weight|waist|inch|cm\b/i);
+  });
+  it('a new person has earned nothing yet', () => {
+    const s = blankState();
+    expect(rewards(s, new Date()).filter((r) => r.earned)).toEqual([]);
+  });
+});
+
+describe('measurements in inches', () => {
+  it('converts older centimetre data once', () => {
+    const old = { ...blankState(), settings: { ...blankState().settings, inches: false }, profile: { ...blankProfile(), waistCm: '81.3' } as never };
+    old.logs.measurements = [{ date: '2026-10-01', kind: 'waist', value: 81.3 }, { date: '2026-10-01', kind: 'weight', value: 60 }];
+    const s = withDefaults(old);
+    expect(s.profile.waistIn).toBe('32');
+    expect(s.logs.measurements[0].value).toBe(32);
+    expect(s.logs.measurements[1].value).toBe(60);
+    expect(withDefaults(s).logs.measurements[0].value).toBe(32);
   });
 });

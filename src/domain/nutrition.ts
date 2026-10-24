@@ -1,6 +1,7 @@
 import { DISHES, DISH_BY_ID } from '../content/dishes';
 import { dayNumber, keyOf } from './dates';
-import type { Allergen, Diet, Dish, Profile, Slot } from './types';
+import { REGION_FALLBACK, STATE_BY_CODE } from '../content/states';
+import type { Allergen, Cuisine, Diet, Dish, Profile, Slot } from './types';
 import { SLOTS } from './types';
 
 // Meal rules. Diet, allergies and foods to avoid are hard filters: a dish that
@@ -38,25 +39,36 @@ export function isAllowed(p: Profile, dish: Dish): boolean {
 
 const isAvailable = (p: Profile, d: Dish) => !d.staples.some((s) => p.unavailable.includes(s));
 
-/** Dishes from the user's own region, plus pan-Indian dishes that every region cooks. */
-export const isHomeRegion = (p: Profile, d: Dish) => d.cuisines.includes(p.cuisine || 'N');
+/** The region a profile cooks from: its state's region, or an older saved region choice. */
+export const regionOf = (p: Profile): Cuisine => (p.state ? STATE_BY_CODE[p.state].region : p.cuisine || 'N');
 
-/** Fewer home-region options than this for a slot, and other regions fill in. */
+/** Home food: dishes cooked in the user's state, plus everyday dishes cooked across India. */
+export function isHome(p: Profile, d: Dish): boolean {
+  if (d.states === 'all') return true;
+  return p.state ? d.states.includes(p.state) : d.cuisines.includes(regionOf(p));
+}
+const isStateDish = (p: Profile, d: Dish) => d.states !== 'all' && (p.state ? d.states.includes(p.state) : d.cuisines.includes(regionOf(p)));
+
+/** Fewer home options than this for a slot, and the nearest regions fill in. */
 const MIN_HOME = 2;
 
 /**
- * Allowed dishes for a slot, best fit first. Only the user's region is planned
- * unless the hard filters leave fewer than two options, so an East Indian plan
- * doesn't drift into South Indian food. Within that, easy-to-get dishes lead.
+ * Allowed dishes for a slot, best fit first. Plans use the user's own state's
+ * food. Only when the hard filters leave fewer than two home options do dishes
+ * from the same region join, then neighbouring regions, then the rest.
+ * Within each group, easy-to-get dishes and the state's own dishes lead.
  */
 export function candidates(p: Profile, slot: Slot): Dish[] {
   const all = DISHES.filter((d) => d.slot === slot && isAllowed(p, d));
-  // Easy to get first, then true regional dishes ahead of pan-Indian ones.
-  const score = (d: Dish) => (isAvailable(p, d) ? 2 : 0) + (d.cuisines.length < 4 ? 1 : 0);
-  const byAvailability = (list: Dish[]) => [...list].sort((a, b) => score(b) - score(a));
-  const home = all.filter((d) => isHomeRegion(p, d));
-  if (home.length >= MIN_HOME) return byAvailability(home);
-  return byAvailability(home).concat(byAvailability(all.filter((d) => !isHomeRegion(p, d))));
+  const score = (d: Dish) => (isAvailable(p, d) ? 2 : 0) + (isStateDish(p, d) ? 1 : 0);
+  const ranked = (list: Dish[]) => [...list].sort((a, b) => score(b) - score(a));
+  const out = ranked(all.filter((d) => isHome(p, d)));
+  for (const region of REGION_FALLBACK[regionOf(p)]) {
+    if (out.length >= MIN_HOME) return out;
+    out.push(...ranked(all.filter((d) => !out.includes(d) && d.cuisines.includes(region))));
+  }
+  if (out.length >= MIN_HOME) return out;
+  return out.concat(ranked(all.filter((d) => !out.includes(d))));
 }
 
 export function proteinRange(p: Profile): [number, number] {
@@ -108,17 +120,21 @@ export function dishFor(p: Profile, swaps: Record<string, string>, date: Date, s
 }
 
 export function swapOptions(p: Profile, current: Dish | null, slot: Slot): Dish[] {
-  const cu = p.cuisine || 'N';
-  return DISHES.filter((d) => d.slot === slot && isAllowed(p, d) && d.id !== current?.id).sort(
-    (a, b) => Number(b.cuisines.includes(cu)) - Number(a.cuisines.includes(cu)) || b.protein - a.protein,
-  );
+  const near = (d: Dish) => (isHome(p, d) ? 2 : d.cuisines.includes(regionOf(p)) ? 1 : 0);
+  return DISHES.filter((d) => d.slot === slot && isAllowed(p, d) && d.id !== current?.id).sort((a, b) => near(b) - near(a) || b.protein - a.protein);
 }
 
 export function whyThis(p: Profile, dish: Dish): string {
   const [lo] = proteinRange(p);
   const parts = [
     dietLabel(p.diet).toLowerCase(),
-    dish.cuisines.includes(p.cuisine || 'N') ? `${cuisineLabel(p.cuisine)} home food` : 'from another region, to give you more choice',
+    isHome(p, dish)
+      ? dish.states === 'all'
+        ? 'an everyday dish cooked across India'
+        : `${homeLabel(p)} home food`
+      : dish.cuisines.includes(regionOf(p))
+        ? `from a neighbouring state, because your filters leave few ${homeLabel(p)} options here`
+        : 'from another region, because your filters leave few options here',
     p.allergies.length ? `free of ${p.allergies.map(allergenLabel).join(', ').toLowerCase()}` : '',
     `${dish.protein} g protein toward your ${lo} g minimum`,
   ].filter(Boolean);
@@ -126,7 +142,10 @@ export function whyThis(p: Profile, dish: Dish): string {
 }
 
 export const dietLabel = (d: Diet | '') => ({ veg: 'Vegetarian', egg: 'Eggetarian', nonveg: 'Non-vegetarian', jain: 'Jain', vegan: 'Vegan' })[d || 'veg'];
-export const cuisineLabel = (c: Profile['cuisine']) => ({ N: 'North Indian', S: 'South Indian', E: 'East Indian', W: 'West Indian' })[c || 'N'];
+export const cuisineLabel = (c: Cuisine | '') =>
+  ({ N: 'North Indian', S: 'South Indian', E: 'East Indian', W: 'West Indian', C: 'Central Indian', NE: 'North-east Indian' })[c || 'N'];
+/** The state's name, or the older region label for profiles saved before states. */
+export const homeLabel = (p: Profile) => (p.state ? STATE_BY_CODE[p.state].name : cuisineLabel(p.cuisine));
 export const allergenLabel = (a: Allergen) =>
   ({ dairy: 'Dairy', gluten: 'Gluten', peanut: 'Peanuts', treenut: 'Tree nuts', soy: 'Soy', egg: 'Egg', sesame: 'Sesame', fish: 'Fish', shellfish: 'Prawns and shellfish' })[a];
 

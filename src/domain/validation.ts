@@ -7,7 +7,7 @@ import type { MeasureKind, Profile } from './types';
 const currentYear = new Date().getFullYear();
 
 export const aboutSchema = z.object({
-  name: z.string().trim().min(1, 'Add your first name so we know what to call you.').max(40, 'Keep your name under 40 characters.'),
+  name: z.string().trim().min(2, 'Add your full name.').max(60, 'Keep your name under 60 characters.'),
   birthYear: z
     .string()
     .regex(/^\d{4}$/, 'Enter your birth year as four digits, for example 1995.')
@@ -15,7 +15,7 @@ export const aboutSchema = z.object({
     .refine((y) => currentYear - Number(y) >= 18, 'Protyn is for adults 18 and over for now. We’re sorry we can’t make a plan for you yet.'),
   heightCm: z.coerce.number({ message: 'Enter your height in centimetres.' }).min(120, 'Enter your height in centimetres, between 120 and 220.').max(220, 'Enter your height in centimetres, between 120 and 220.'),
   weightKg: z.coerce.number({ message: 'Enter your weight in kilograms.' }).min(30, 'Enter your weight in kilograms, between 30 and 250.').max(250, 'Enter your weight in kilograms, between 30 and 250.'),
-  waistCm: z.union([z.literal(''), z.coerce.number().min(40, 'Waist should be between 40 and 200 cm, or leave it empty.').max(200, 'Waist should be between 40 and 200 cm, or leave it empty.')]),
+  waistIn: z.union([z.literal(''), z.coerce.number().min(16, 'Waist should be between 16 and 80 inches, or leave it empty.').max(80, 'Waist should be between 16 and 80 inches, or leave it empty.')]),
 });
 
 export type StepKey = 'about' | 'goal' | 'activity' | 'food' | 'workouts' | 'habits' | 'health' | 'preview';
@@ -23,7 +23,7 @@ export type StepKey = 'about' | 'goal' | 'activity' | 'food' | 'workouts' | 'hab
 export function stepError(step: StepKey, p: Profile): string | null {
   switch (step) {
     case 'about': {
-      const r = aboutSchema.safeParse({ ...p, waistCm: p.waistCm.trim() });
+      const r = aboutSchema.safeParse({ ...p, waistIn: p.waistIn.trim() });
       return r.success ? null : r.error.issues[0].message;
     }
     case 'goal':
@@ -32,15 +32,14 @@ export function stepError(step: StepKey, p: Profile): string | null {
       if (!p.activity || !p.experience) return 'Choose your activity level and your experience.';
       return null;
     case 'food':
-      if (!p.diet || !p.cuisine) return 'Choose your diet and your home cooking.';
+      if (!p.diet) return 'Choose what you eat.';
+      if (!p.state) return 'Choose the state whose food you cook at home.';
       if (!p.allergiesConfirmed && !p.allergies.length) return 'Tell us about allergies. Choose “No allergies” if none apply. We never guess.';
       return null;
     case 'workouts':
       if (!p.place) return 'Choose where you’ll work out.';
       if (p.workoutDays.length < 2 || p.workoutDays.length > 4) return 'Choose two to four workout days.';
       return null;
-    case 'habits':
-      return p.habits.length > 5 ? 'Five habits is the most we suggest. Remove one to continue.' : null;
     default:
       return null;
   }
@@ -48,10 +47,10 @@ export function stepError(step: StepKey, p: Profile): string | null {
 
 const RANGES: Record<MeasureKind, [number, number, string]> = {
   weight: [30, 250, 'kg'],
-  waist: [40, 200, 'cm'],
-  hips: [50, 200, 'cm'],
-  chest: [50, 200, 'cm'],
-  arm: [15, 70, 'cm'],
+  waist: [16, 80, 'in'],
+  hips: [20, 80, 'in'],
+  chest: [20, 80, 'in'],
+  arm: [6, 28, 'in'],
 };
 
 export const MEASURE_LABEL: Record<MeasureKind, string> = { weight: 'Weight', waist: 'Waist', hips: 'Hips', chest: 'Chest', arm: 'Upper arm' };

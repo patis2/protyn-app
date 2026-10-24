@@ -3,7 +3,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { GOALS } from '../../content/library';
 import { useStore, useToday } from '../../data/store';
-import { fmtDate, greeting, keyOf } from '../../domain/dates';
+import { firstName, fmtDate, greeting, keyOf } from '../../domain/dates';
 import { proteinRange, proteinTip } from '../../domain/nutrition';
 import { provider } from '../../domain/provider';
 import { goalNotice, isGentle, WELLNESS_NOTE } from '../../domain/safety';
@@ -11,7 +11,8 @@ import { myHabits, proteinOn, weekNumber } from '../../domain/stats';
 import { SLOTS } from '../../domain/types';
 import { sessionOn, workoutMode } from '../../domain/workouts';
 import { Button, Chip, Choices, Hero, LinkButton, Note, Row, Screen, Section, Tick, Txt } from '../../ui/components';
-import { Ring } from '../../ui/icons';
+import { Icon, Ring } from '../../ui/icons';
+import { newRewards } from '../../domain/rewards';
 import { useColors } from '../../ui/theme';
 import { font } from '../../ui/tokens';
 import { CheckInCard, HabitChip, MealRow, MeButton, WeekDots } from '../../ui/pieces';
@@ -31,6 +32,7 @@ export default function Today() {
   const done = sessionOn(state.logs.sessions, today);
   const habits = myHabits(state);
   const notice = goalNotice(p);
+  const fresh = newRewards(state, today)[0];
   const start = (easier?: boolean) => router.push({ pathname: '/workout', params: { date: keyOf(today), ...(easier ? { easier: '1' } : {}) } });
 
   return (
@@ -42,7 +44,7 @@ export default function Today() {
               {fmtDate(today)} · Week {weekNumber(state, today)}
             </Txt>
             <Txt variant="screen" color={c.onHero}>
-              {greeting(today)}, {p.name || 'there'}
+              {greeting(today)}, {firstName(p.name) || 'there'}
             </Txt>
           </View>
           <MeButton />
@@ -73,6 +75,18 @@ export default function Today() {
       </Hero>
       {p.why ? <Txt variant="muted">Your why: {p.why}</Txt> : null}
       {notice ? <Note tone="why">{notice}</Note> : null}
+      {fresh ? (
+        <Section title="New reward" tint>
+          <Row>
+            <Icon name="trophy" size={28} color={c.sageDeep} />
+            <View style={{ flex: 1 }}>
+              <Txt variant="card">You unlocked “{fresh.title}”</Txt>
+              <Txt variant="small">Share it with friends and family.</Txt>
+            </View>
+            <Button label="View" small onPress={() => router.push({ pathname: '/reward', params: { id: fresh.id } })} />
+          </Row>
+        </Section>
+      ) : null}
 
       <Section title="Today’s workout" label="Today’s workout">
         {!plan ? (
