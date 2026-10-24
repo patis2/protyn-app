@@ -9,7 +9,7 @@ import { font } from './tokens';
 const W = 1080;
 const H = 1350;
 
-const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="28" fill="#2F5240"/><circle cx="54" cy="58" r="31" fill="#F8F1E9"/><circle cx="54" cy="58" r="23" fill="none" stroke="#E4DACC" stroke-width="2"/><circle cx="45" cy="51" r="9" fill="#E8A33D"/><circle cx="45" cy="51" r="5.5" fill="#F2C46A"/><path d="M58 68 C 58 56, 68 50, 74 50 C 74 60, 68 70, 58 68 Z" fill="#6FA07A"/><path d="M60 66 L 71 53" stroke="#2F5240" stroke-width="1.4" stroke-linecap="round"/><circle cx="44" cy="70" r="6" fill="#D9B98A"/><g transform="rotate(-35 84 86)"><rect x="66" y="83" width="36" height="6" rx="3" fill="#E8735A"/><rect x="64" y="75" width="8" height="22" rx="3" fill="#E8735A"/><rect x="96" y="75" width="8" height="22" rx="3" fill="#E8735A"/><rect x="58" y="78" width="6" height="16" rx="2.5" fill="#F08D74"/><rect x="104" y="78" width="6" height="16" rx="2.5" fill="#F08D74"/></g></svg>`;
+const LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><rect width="120" height="120" rx="28" fill="#2F5240"/><rect x="30" y="30" width="11" height="60" rx="5.5" fill="#F8F1E9"/><circle cx="70" cy="50" r="18" fill="none" stroke="#677E6F" stroke-width="11"/><circle cx="70" cy="50" r="18" fill="none" stroke="#E8735A" stroke-width="11" stroke-dasharray="85 200" transform="rotate(-90 70 50)"/></svg>`;
 
 const loadImage = (src: string) =>
   new Promise<HTMLImageElement>((resolve, reject) => {

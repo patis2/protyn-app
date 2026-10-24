@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 (2026-10-24)
+
+- **P logo is back everywhere.** The original Protyn "P" mark (a stem and a protein ring) is the logo again on the landing screen, app icon, browser tab, header and reward cards. The plate-and-dumbbell mark from 1.2.0 stays in `assets/brand/protyn-icon-v2.svg` as an alternate.
+- **Bigger landing screen.** The logo, name and tagline are larger. The logo builds itself (the tile lands, the stem rises, the ring appears and the coral protein arc sweeps round), then floats gently. Motion is skipped when the device asks to reduce it.
+- **Netlify badge no longer covers buttons on phones.** Netlify's free plan adds a "Powered by Netlify" badge to the bottom-right corner that can't be turned off. On screens narrower than 600 px the app now leaves a strip at the bottom for it, so the tab bar and buttons stay clear. Desktop is unchanged.
+
 ## 1.2.0 (2026-10-24)
 
 - **New tagline and logo.** "Plan it. Plate it. Pump it." The new mark shows a plate of home food (dal, greens, roti) with a dumbbell. The landing screen now shows only the logo building itself, the name and the tagline. The original brand files are kept; the new mark is `assets/brand/protyn-icon-v2.svg`.

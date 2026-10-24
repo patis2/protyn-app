@@ -1,7 +1,7 @@
 import { Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold } from '@expo-google-fonts/outfit';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { useColorScheme, View } from 'react-native';
@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StoreProvider, useStore } from '../data/store';
 import { Button, Loading, Note, Screen, Txt } from '../ui/components';
 import { Logo } from '../ui/icons';
+import { useHostBadgeInset } from '../ui/hostBadge';
 import { ToastProvider, useColors } from '../ui/theme';
 
 function Gate({ children }: { children: React.ReactNode }) {
@@ -54,11 +55,15 @@ function Nav() {
 
 export default function RootLayout() {
   const scheme = useColorScheme();
+  const c = useColors();
+  const badgeInset = useHostBadgeInset();
+  // The landing screen is deep sage, so the strip under it matches.
+  const stripColor = usePathname() === '/' ? c.hero : c.bg;
   const [loaded, fontError] = useFonts({ Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Outfit_500Medium, Outfit_600SemiBold, Outfit_700Bold });
   return (
     <SafeAreaProvider>
       <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-      <View style={{ flex: 1 }}>
+      <View style={{ flex: 1, paddingBottom: badgeInset, backgroundColor: stripColor }}>
         {!loaded && !fontError ? (
           <Loading label="Opening Protyn" />
         ) : (
